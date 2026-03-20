@@ -23,8 +23,8 @@ const fadeUp = {
 
 export default function About() {
   const { ref, inView } = useInView({ threshold: 0.15, triggerOnce: true })
-  const { data: events } = useWixData<SpeakingEvent>('speakingEvents', 5)
-  const { data: testimonials } = useWixData<Testimonial>('testimonials', 1)
+  const { data: events } = useWixData<SpeakingEvent>('SpeakingEvents', 5)
+  const { data: testimonials } = useWixData<Testimonial>('Testimonials', 1)
 
   const featuredTestimonial = testimonials?.[0]
 

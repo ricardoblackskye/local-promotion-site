@@ -31,7 +31,7 @@ const fadeUp = {
 
 export default function CaseStudies() {
   const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: true })
-  const { data: cmsCases } = useWixData<CaseStudy>('caseStudies', 6)
+  const { data: cmsCases } = useWixData<CaseStudy>('CaseStudies', 6)
   const cases = cmsCases && cmsCases.length > 0 ? cmsCases : FALLBACK_CASES
 
   const sectors = ['All', ...Array.from(new Set(cases.map((c) => c.sector)))]
@@ -136,7 +136,7 @@ export default function CaseStudies() {
                     {study.description}
                   </p>
                   <div className="mt-auto flex flex-wrap gap-1.5">
-                    {study.tags.map((tag) => (
+                    {(Array.isArray(study.tags) ? study.tags : []).map((tag) => (
                       <span key={tag} className="text-xs text-accent/60 border border-accent/10 px-2 py-0.5 rounded-sm">
                         {tag}
                       </span>
@@ -187,7 +187,7 @@ export default function CaseStudies() {
               <p className="text-muted text-sm mb-2">Client: <span className="text-white/80">{selectedCase.client}</span></p>
               <p className="text-white/60 text-sm leading-relaxed mb-6">{selectedCase.description}</p>
               <div className="flex flex-wrap gap-2 mb-6">
-                {selectedCase.tags.map((tag) => (
+                {(Array.isArray(selectedCase.tags) ? selectedCase.tags : []).map((tag) => (
                   <span key={tag} className="text-xs text-accent/60 border border-accent/10 px-2 py-0.5 rounded-sm">
                     {tag}
                   </span>

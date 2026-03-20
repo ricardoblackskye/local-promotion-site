@@ -2,7 +2,8 @@ import { createClient, OAuthStrategy } from '@wix/sdk'
 import { items } from '@wix/data'
 import { posts } from '@wix/blog'
 
-const clientId = import.meta.env.VITE_WIX_CLIENT_ID as string
+const clientId = import.meta.env.VITE_WIX_CLIENT_ID
+const siteId = import.meta.env.VITE_WIX_SITE_ID
 
 if (!clientId) {
   console.warn('[Wix] VITE_WIX_CLIENT_ID is not set. CMS content will not load.')
@@ -10,5 +11,5 @@ if (!clientId) {
 
 export const wixClient = createClient({
   modules: { items, posts },
-  auth: OAuthStrategy({ clientId: clientId ?? '' }),
+  auth: OAuthStrategy({ clientId: clientId ?? '', siteId: siteId ?? '' }),
 })

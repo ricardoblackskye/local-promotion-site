@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import { useWixData } from '@/hooks/useWixData'
+import { useWixServices } from '@/hooks/useWixServices'
 import type { Service } from '@/types'
 
 const ICON_MAP: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
@@ -47,7 +47,7 @@ const fadeUp = {
 
 export default function Services() {
   const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: true })
-  const { data: cmsServices } = useWixData<Service>('services', 6)
+  const { data: cmsServices } = useWixServices(6)
   const services = cmsServices && cmsServices.length > 0 ? cmsServices : FALLBACK_SERVICES
 
   return (
