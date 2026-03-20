@@ -1,0 +1,20 @@
+[
+  {
+    "_id": "case-1",
+    "title": "AI-Driven Supply Chain Optimisation",
+    "client": "Global FMCG",
+    "sector": "Retail",
+    "outcome": "38% cost reduction",
+    "description": "Led end-to-end AI strategy and delivery for a £2B FMCG business, implementing predictive demand models that eliminated £40M in excess inventory.",
+    "tags": ["AI Strategy", "Supply Chain", "GenAI"]
+  },
+  {
+    "_id": "case-2",
+    "title": "Executive AI Readiness Programme",
+    "client": "FTSE 100 Bank",
+    "sector": "Financial Services",
+    "outcome": "3x AI adoption rate",
+    "description": "Designed and delivered a board-level AI literacy and strategy programme.",
+    "tags": ["Executive Advisory", "Governance"]
+  }
+]

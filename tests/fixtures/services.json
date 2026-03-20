@@ -1,0 +1,20 @@
+[
+  {
+    "_id": "svc-1",
+    "title": "AI Strategy & Roadmap",
+    "description": "Develop a board-ready AI strategy aligned to your business objectives and risk appetite.",
+    "icon": "brain"
+  },
+  {
+    "_id": "svc-2",
+    "title": "Executive Advisory",
+    "description": "Ongoing strategic counsel for C-suite leaders navigating AI adoption and digital transformation.",
+    "icon": "target"
+  },
+  {
+    "_id": "svc-3",
+    "title": "GenAI Implementation",
+    "description": "End-to-end LLM and generative AI delivery — from proof of concept to production at scale.",
+    "icon": "zap"
+  }
+]

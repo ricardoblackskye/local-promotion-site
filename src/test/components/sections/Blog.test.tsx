@@ -1,0 +1,142 @@
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
+import React from 'react'
+
+vi.mock('framer-motion')
+vi.mock('react-intersection-observer')
+vi.mock('@/lib/wixClient', () => ({
+  wixClient: {
+    posts: { listPosts: vi.fn() },
+  },
+}))
+
+import { wixClient } from '@/lib/wixClient'
+import Blog from '@/components/sections/Blog'
+import type { BlogPost } from '@/types'
+
+function wrapper({ children }: { children: React.ReactNode }) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return React.createElement(QueryClientProvider, { client }, children)
+}
+
+const mockListPosts = vi.mocked(wixClient.posts.listPosts)
+
+describe('Blog', () => {
+  it('shows fallback posts when CMS returns empty', async () => {
+    mockListPosts.mockResolvedValue({ posts: [] })
+    const { findByText } = render(<Blog />, { wrapper })
+    expect(
+      await findByText(/why most ai strategies fail/i),
+    ).toBeInTheDocument()
+  })
+
+  it('shows CMS posts when data is available', async () => {
+    const cmsPosts: BlogPost[] = [
+      {
+        _id: 'p1',
+        title: 'CMS Blog Post',
+        slug: 'cms-post',
+        publishedDate: '2026-01-01T00:00:00Z',
+      },
+    ]
+    mockListPosts.mockResolvedValue({ posts: cmsPosts })
+
+    const { findByText } = render(<Blog />, { wrapper })
+    expect(await findByText('CMS Blog Post')).toBeInTheDocument()
+  })
+
+  it('renders a post with cover image', async () => {
+    // Must use WixPost shape (what the API actually returns) so mapPost can produce coverImage
+    mockListPosts.mockResolvedValue({
+      posts: [
+        {
+          _id: 'p2',
+          title: 'Post With Image',
+          slug: 'post-img',
+          firstPublishedDate: new Date('2026-01-01T00:00:00Z'),
+          coverMedia: { image: { url: 'https://example.com/cover.jpg' } },
+          minutesToRead: 4,
+          categories: [{ label: 'AI' }, { label: 'Tech' }],
+          excerpt: 'An interesting post.',
+        },
+      ],
+    } as unknown as Awaited<ReturnType<typeof mockListPosts>>)
+
+    const { findByText } = render(<Blog />, { wrapper })
+    await findByText('Post With Image')
+
+    expect(screen.getByAltText('Post With Image')).toBeInTheDocument()
+    expect(screen.getByText('4 min read')).toBeInTheDocument()
+    expect(screen.getByText('An interesting post.')).toBeInTheDocument()
+  })
+
+  it('renders a post without optional fields gracefully', async () => {
+    const cmsPosts: BlogPost[] = [
+      {
+        _id: 'p3',
+        title: 'Minimal Post',
+        slug: 'minimal',
+        publishedDate: '2026-02-01T00:00:00Z',
+        // no coverImage, no readingTime, no categories, no excerpt
+      },
+    ]
+    mockListPosts.mockResolvedValue({ posts: cmsPosts })
+
+    const { findByText } = render(<Blog />, { wrapper })
+    await findByText('Minimal Post')
+
+    expect(screen.queryByText(/min read/i)).toBeNull()
+  })
+
+  it('opens blog on "Read all insights" click', async () => {
+    mockListPosts.mockResolvedValue({ posts: [] })
+    const openSpy = vi.spyOn(globalThis, 'open').mockImplementation(() => null)
+
+    const { findByRole } = render(<Blog />, { wrapper })
+    const btn = await findByRole('button', { name: /read all insights/i })
+    fireEvent.click(btn)
+
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://www.yourdomain.com/blog',
+      '_blank',
+      'noopener,noreferrer',
+    )
+  })
+
+  it('shows skeleton placeholders when loading', () => {
+    // A never-resolving promise keeps the query in loading state
+    mockListPosts.mockReturnValue(new Promise(() => {}))
+
+    render(<Blog />, { wrapper })
+    // Three skeleton placeholder divs are rendered while loading
+    const skeletons = document.querySelectorAll('.animate-pulse')
+    expect(skeletons.length).toBe(3)
+  })
+
+  it('renders correctly when inView is false (covers animate falsy branch)', async () => {
+    mockListPosts.mockResolvedValue({ posts: [] })
+    vi.mocked(useInView).mockReturnValueOnce({ ref: vi.fn(), inView: false, entry: undefined } as unknown as ReturnType<typeof useInView>)
+    const { container } = render(<Blog />, { wrapper })
+    expect(container.querySelector('#blog')).toBeInTheDocument()
+  })
+
+  it('renders posts list with inView false (covers motion.ul animate hidden branch)', async () => {
+    const post: BlogPost = {
+      _id: 'p1',
+      title: 'Test Post',
+      slug: 'test-post',
+      excerpt: 'Excerpt',
+      publishedDate: '2025-01-01',
+      readingTime: 3,
+    }
+    mockListPosts.mockResolvedValue({ posts: [post] })
+    // Use persistent mock so all renders (including after data loads) see inView=false
+    vi.mocked(useInView).mockReturnValue({ ref: vi.fn(), inView: false, entry: undefined } as unknown as ReturnType<typeof useInView>)
+    const { findByText } = render(<Blog />, { wrapper })
+    expect(await findByText('Test Post')).toBeInTheDocument()
+    // Restore default mock
+    vi.mocked(useInView).mockReturnValue({ ref: vi.fn(), inView: true, entry: undefined } as unknown as ReturnType<typeof useInView>)
+  })
+})

@@ -1,0 +1,39 @@
+import { NavItem } from '@/types'
+
+export const NAV_ITEMS: NavItem[] = [
+  { label: 'About', sectionId: 'about' },
+  { label: 'Services', sectionId: 'services' },
+  { label: 'AI Focus', sectionId: 'ai-focus' },
+  { label: 'Case Studies', sectionId: 'case-studies' },
+  { label: 'Insights', sectionId: 'blog' },
+  { label: 'Contact', sectionId: 'contact' },
+]
+
+export const SITE_NAME = 'Richard Lloyd'
+
+export const SITE_TAGLINE = 'AI Strategy & Senior Leadership'
+
+export const ROLES = [
+  'Senior Leader',
+  'AI Strategist',
+  'Transformation Consultant',
+  'Digital Pioneer',
+  'Board Advisor',
+]
+
+export const STATS = [
+  { value: 20, suffix: '+', label: 'Years Experience' },
+  { value: 50, suffix: '+', label: 'Clients Served' },
+  { value: 500, prefix: '£', suffix: 'M+', label: 'Value Delivered' },
+]
+
+export const AI_CAPABILITIES = [
+  'GenAI Strategy',
+  'LLM Implementation',
+  'Data Architecture',
+  'AI Ethics & Governance',
+  'ML Ops',
+  'Intelligent Automation',
+  'Digital Transformation',
+  'Executive AI Advisory',
+]
