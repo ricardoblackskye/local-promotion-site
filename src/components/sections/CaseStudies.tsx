@@ -123,12 +123,10 @@ export default function CaseStudies() {
                   }}
                   aria-label={`View case study: ${study.title}`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <Badge variant="muted">{study.sector}</Badge>
-                    <span className="text-accent font-bold font-display text-sm shrink-0">
-                      {study.outcome}
-                    </span>
-                  </div>
+                  <Badge variant="muted" className="self-start">{study.sector}</Badge>
+                  <span className="text-accent font-bold font-display text-sm">
+                    {study.outcome}
+                  </span>
                   <h3 className="font-display font-bold text-white text-lg leading-tight group-hover:text-accent transition-colors">
                     {study.title}
                   </h3>
