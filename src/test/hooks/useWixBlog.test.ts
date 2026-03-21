@@ -39,10 +39,10 @@ describe('useWixBlog', () => {
           title: 'Test Title',
           excerpt: 'Test excerpt',
           slug: 'test-slug',
-          coverMedia: { image: { url: 'https://example.com/img.jpg' } },
+          media: { wixMedia: { image: 'https://example.com/img.jpg' } },
           firstPublishedDate: publishedDate,
           minutesToRead: 5,
-          categories: [{ label: 'AI' }, { label: 'Tech' }],
+          categoryIds: ['cat-uuid-1', 'cat-uuid-2'],
         },
       ],
     } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
@@ -56,10 +56,10 @@ describe('useWixBlog', () => {
     expect(posts[0].title).toBe('Test Title')
     expect(posts[0].excerpt).toBe('Test excerpt')
     expect(posts[0].slug).toBe('test-slug')
-    expect(posts[0].coverImage).toBe('https://example.com/img.jpg')
+    expect(posts[0].coverImage).toMatch(/^https:\/\//)
     expect(posts[0].publishedDate).toBe(publishedDate.toISOString())
     expect(posts[0].readingTime).toBe(5)
-    expect(posts[0].categories).toEqual(['AI', 'Tech'])
+    expect(posts[0].categories).toEqual([])
   })
 
   it('fills in defaults for missing fields', async () => {
@@ -70,10 +70,10 @@ describe('useWixBlog', () => {
           title: null,
           excerpt: null,
           slug: null,
-          coverMedia: null,
+          media: null,
           firstPublishedDate: null,
           minutesToRead: null,
-          categories: null,
+          categoryIds: null,
         },
       ],
     } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
@@ -92,7 +92,7 @@ describe('useWixBlog', () => {
     expect(posts[0].categories).toEqual([])
   })
 
-  it('filters out null category labels', async () => {
+  it('categories is always empty array (categoryIds are UUIDs, labels require separate API call)', async () => {
     mockedListPosts.mockResolvedValue({
       posts: [
         {
@@ -100,7 +100,7 @@ describe('useWixBlog', () => {
           title: 'x',
           slug: 's',
           firstPublishedDate: new Date(),
-          categories: [{ label: 'AI' }, { label: null }, { label: '' }],
+          categoryIds: ['cat-1', 'cat-2', 'cat-3'],
         },
       ],
     } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
@@ -108,17 +108,17 @@ describe('useWixBlog', () => {
     const { result } = renderHook(() => useWixBlog(), { wrapper })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(result.current.data![0].categories).toEqual(['AI'])
+    expect(result.current.data![0].categories).toEqual([])
   })
 
-  it('handles nested coverMedia with missing image url', async () => {
+  it('returns undefined coverImage when media.wixMedia.image is missing', async () => {
     mockedListPosts.mockResolvedValue({
       posts: [
         {
           _id: 'p2',
           title: 'y',
           slug: 's',
-          coverMedia: { image: { url: null } },
+          media: { wixMedia: { image: null } },
           firstPublishedDate: new Date(),
         },
       ],
@@ -130,14 +130,14 @@ describe('useWixBlog', () => {
     expect(result.current.data![0].coverImage).toBeUndefined()
   })
 
-  it('handles coverMedia with missing image object', async () => {
+  it('returns undefined coverImage when media.wixMedia is missing', async () => {
     mockedListPosts.mockResolvedValue({
       posts: [
         {
           _id: 'p3',
           title: 'z',
           slug: 's',
-          coverMedia: { image: null },
+          media: { wixMedia: null },
           firstPublishedDate: new Date(),
         },
       ],

@@ -45,10 +45,13 @@ describe('Blog', () => {
 
     const { findByText } = render(<Blog />, { wrapper })
     expect(await findByText('CMS Blog Post')).toBeInTheDocument()
+    expect(mockListPosts).toHaveBeenCalledWith(
+      expect.objectContaining({ featured: true }),
+    )
   })
 
   it('renders a post with cover image', async () => {
-    // Must use WixPost shape (what the API actually returns) so mapPost can produce coverImage
+    // Uses WixPost shape (what the API actually returns) so mapPost can produce coverImage
     mockListPosts.mockResolvedValue({
       posts: [
         {
@@ -56,9 +59,9 @@ describe('Blog', () => {
           title: 'Post With Image',
           slug: 'post-img',
           firstPublishedDate: new Date('2026-01-01T00:00:00Z'),
-          coverMedia: { image: { url: 'https://example.com/cover.jpg' } },
+          media: { wixMedia: { image: 'https://example.com/cover.jpg' } },
           minutesToRead: 4,
-          categories: [{ label: 'AI' }, { label: 'Tech' }],
+          categoryIds: ['cat-uuid-1', 'cat-uuid-2'],
           excerpt: 'An interesting post.',
         },
       ],
@@ -120,6 +123,40 @@ describe('Blog', () => {
     vi.mocked(useInView).mockReturnValueOnce({ ref: vi.fn(), inView: false, entry: undefined } as unknown as ReturnType<typeof useInView>)
     const { container } = render(<Blog />, { wrapper })
     expect(container.querySelector('#blog')).toBeInTheDocument()
+  })
+
+  it('shows Featured badge when post has featured: true', async () => {
+    const cmsPosts: BlogPost[] = [
+      {
+        _id: 'pf1',
+        title: 'Featured Post',
+        slug: 'featured-post',
+        publishedDate: '2026-03-01T00:00:00Z',
+        featured: true,
+      },
+    ]
+    mockListPosts.mockResolvedValue({ posts: cmsPosts })
+
+    const { findByText } = render(<Blog />, { wrapper })
+    await findByText('Featured Post')
+    expect(screen.getByText('Featured')).toBeInTheDocument()
+  })
+
+  it('does not show Featured badge when post has featured: false', async () => {
+    const cmsPosts: BlogPost[] = [
+      {
+        _id: 'pf2',
+        title: 'Regular Post',
+        slug: 'regular-post',
+        publishedDate: '2026-03-01T00:00:00Z',
+        featured: false,
+      },
+    ]
+    mockListPosts.mockResolvedValue({ posts: cmsPosts })
+
+    const { findByText } = render(<Blog />, { wrapper })
+    await findByText('Regular Post')
+    expect(screen.queryByText('Featured')).toBeNull()
   })
 
   it('renders posts list with inView false (covers motion.ul animate hidden branch)', async () => {

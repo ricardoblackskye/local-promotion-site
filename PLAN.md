@@ -346,3 +346,46 @@ CONTACT_EMAIL=richard@yourdomain.com
 - [ ] Update email/LinkedIn/Calendly URLs in `Footer.tsx` and `Contact.tsx`
 - [ ] Set up Resend domain verification for email sending
 - [ ] Run `npm run test:e2e` after first deploy and fix any failures
+
+---
+
+## Feature: Wix Featured Blog Posts on Main Page
+
+### Overview
+The Blog section already exists and renders, but currently shows static fallback data because the Wix Blog API returns 401. This feature wires up the live Wix Blog API, filters to featured posts only, and surfaces a "Featured" badge on each card.
+
+### Decisions
+- Show only posts marked as **Featured** in Wix (`featured: true` filter)
+- Add a **"Featured" badge** on each `BlogCard`
+- Keep "Read all insights" button URL as placeholder (`https://www.yourdomain.com/blog`)
+
+---
+
+### Phase 1 — Wix Dashboard (manual prerequisite)
+- [ ] In Wix Dashboard → **Settings → Headless Settings → OAuth Apps**, confirm Client ID `214db24e-...` is the correct app
+- [ ] On that OAuth app, confirm **Blog → Read Posts** permission is enabled
+- [ ] Write and publish at least one blog post in Wix Blog; mark it as **Featured**
+- [ ] Clear `wixTokens` key from browser localStorage and reload to force fresh token generation
+
+### Phase 2 — Type update
+- [x] Add `featured?: boolean` to the `BlogPost` interface in `src/types/index.ts`
+
+### Phase 3 — Hook update (`useWixBlog`)
+- [x] Add `featured?: boolean | null` to the internal `WixPost` interface in `src/hooks/useWixBlog.ts`
+- [x] Map the field in `mapPost()`: `featured: post.featured ?? undefined`
+- [x] Add `featured: true` to the `listPosts` call: `listPosts({ paging: { limit }, featured: true })`
+
+### Phase 4 — Component update (`Blog.tsx`)
+- [x] In `BlogCard`, add `<Badge variant="accent">Featured</Badge>` rendered when `post.featured === true`, placed before category badges
+
+### Phase 5 — Tests & fixtures
+- [x] Add `"featured": true` to all 3 posts in `tests/fixtures/blog-posts.json`
+- [x] In `src/test/components/sections/Blog.test.tsx`:
+  - [x] Add assertion that `listPosts` is called with `{ featured: true, ... }`
+  - [x] Add test: post with `featured: true` renders a "Featured" badge
+
+### Verification
+1. Clear localStorage `wixTokens`, run `npm run dev` — Network tab shows `listPosts` returning 200 with featured posts
+2. Three cards render on the page, each showing a "Featured" badge
+3. `npx vitest run` — all Blog tests pass
+4. `npx tsc --noEmit` — no type errors

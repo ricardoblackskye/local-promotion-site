@@ -14,7 +14,8 @@ export default defineConfig({
     include: ['@wix/sdk', '@wix/blog', '@wix/data'],
   },
   server: {
-    port: 3000,
+    port: 3001,
+    strictPort: true,
   },
   build: {
     rollupOptions: {

@@ -36,9 +36,12 @@ describe('wixClient', () => {
 
   it('does not warn when VITE_WIX_CLIENT_ID is set', async () => {
     vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
+    mockGenerateVisitorTokens.mockResolvedValueOnce({ accessToken: { value: 'tok' } })
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     await import('@/lib/wixClient')
-    expect(warnSpy).not.toHaveBeenCalled()
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      '[Wix] VITE_WIX_CLIENT_ID is not set. CMS content will not load.',
+    )
   })
 
   it('warns when VITE_WIX_CLIENT_ID is empty string', async () => {
@@ -59,15 +62,15 @@ describe('wixClient', () => {
     expect(warnSpy).toHaveBeenCalled()
   })
 
-  it('skips token generation when tokens are already in localStorage', async () => {
+  it('always generates fresh visitor tokens on load', async () => {
     vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
-    // Pre-populate localStorage so !storedTokens is false and the if-block is skipped
-    const existing = { accessToken: { value: 'existing-token' } }
-    localStorage.setItem('wixTokens', JSON.stringify(existing))
-    const mod = await import('@/lib/wixClient')
-    expect(mod.wixClient).toBeDefined()
-    expect(mockGenerateVisitorTokens).not.toHaveBeenCalled()
-    expect(JSON.parse(localStorage.getItem('wixTokens')!)).toEqual(existing)
+    // Even if a stale token exists in localStorage it should be cleared and replaced
+    localStorage.setItem('wixTokens', JSON.stringify({ accessToken: { value: 'old-token' } }))
+    const freshTokens = { accessToken: { value: 'fresh-token' } }
+    mockGenerateVisitorTokens.mockResolvedValueOnce(freshTokens)
+    await import('@/lib/wixClient')
+    expect(mockGenerateVisitorTokens).toHaveBeenCalled()
+    expect(JSON.parse(localStorage.getItem('wixTokens')!)).toEqual(freshTokens)
   })
 
   it('stores visitor tokens when generateVisitorTokens succeeds', async () => {

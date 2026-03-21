@@ -45,6 +45,7 @@ export interface BlogPost {
   publishedDate: string
   readingTime?: number
   categories?: string[]
+  featured?: boolean
 }
 
 export interface ContactFormData {

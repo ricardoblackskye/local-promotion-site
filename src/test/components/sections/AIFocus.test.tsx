@@ -33,7 +33,7 @@ describe('AIFocus', () => {
   })
 
   it('renders correctly when inView is false (covers animate falsy branch)', () => {
-    vi.mocked(useInView).mockReturnValueOnce({ ref: vi.fn(), inView: false, entry: undefined })
+    vi.mocked(useInView).mockReturnValueOnce({ ref: vi.fn(), inView: false, entry: undefined } as unknown as ReturnType<typeof useInView>)
     render(<AIFocus />)
     // Component should still render without errors
     expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()

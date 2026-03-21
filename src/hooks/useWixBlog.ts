@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { getScaledToFillImageUrl } from '@wix/sdk/media'
 import { wixClient } from '@/lib/wixClient'
 import type { BlogPost } from '@/types'
 
@@ -7,10 +8,13 @@ interface WixPost {
   title?: string | null
   excerpt?: string | null
   slug?: string | null
-  coverMedia?: { image?: { url?: string | null } | null } | null
+  /** post.media.wixMedia.image is a Wix image reference string */
+  media?: { wixMedia?: { image?: string | null } | null } | null
   firstPublishedDate?: Date | null
   minutesToRead?: number | null
-  categories?: Array<{ label?: string | null }> | null
+  /** listPosts returns categoryIds (UUIDs), labels require a separate API call */
+  categoryIds?: string[] | null
+  featured?: boolean | null
 }
 
 function mapPost(post: WixPost): BlogPost {
@@ -19,14 +23,15 @@ function mapPost(post: WixPost): BlogPost {
     title: post.title ?? 'Untitled',
     excerpt: post.excerpt ?? undefined,
     slug: post.slug ?? '',
-    coverImage: post.coverMedia?.image?.url ?? undefined,
+    coverImage: post.media?.wixMedia?.image
+      ? getScaledToFillImageUrl(post.media.wixMedia.image, 800, 400, {})
+      : undefined,
     publishedDate: post.firstPublishedDate
       ? post.firstPublishedDate.toISOString()
       : new Date().toISOString(),
     readingTime: post.minutesToRead ?? undefined,
-    categories: post.categories
-      ?.map((c) => c.label ?? '')
-      .filter(Boolean) ?? [],
+    categories: [],
+    featured: post.featured ?? undefined,
   }
 }
 
@@ -35,8 +40,8 @@ export function useWixBlog(limit = 3) {
     queryKey: ['wix-blog', limit],
     queryFn: async () => {
       const response = await wixClient.posts
-        .listPosts({ paging: { limit } })
-        .catch(() => ({ posts: [] }))
+        .listPosts({ paging: { limit }, featured: true })
+        .catch((err: unknown) => { console.error('[Wix Blog] listPosts error:', err); return { posts: [] } })
       const rawPosts = (response as { posts?: WixPost[] }).posts ?? []
       return rawPosts.map(mapPost)
     },

@@ -6,7 +6,8 @@
     "slug": "why-ai-strategies-fail",
     "publishedDate": "2026-02-14T00:00:00Z",
     "readingTime": 6,
-    "categories": ["AI Strategy"]
+    "categories": ["AI Strategy"],
+    "featured": true
   },
   {
     "_id": "post-2",
@@ -15,7 +16,8 @@
     "slug": "scaling-genai",
     "publishedDate": "2026-01-28T00:00:00Z",
     "readingTime": 8,
-    "categories": ["GenAI", "Governance"]
+    "categories": ["GenAI", "Governance"],
+    "featured": true
   },
   {
     "_id": "post-3",
@@ -24,6 +26,7 @@
     "slug": "board-ai-questions",
     "publishedDate": "2026-01-10T00:00:00Z",
     "readingTime": 5,
-    "categories": ["Leadership"]
+    "categories": ["Leadership"],
+    "featured": true
   }
 ]

@@ -47,8 +47,11 @@ function BlogCard({ post }: Readonly<{ post: BlogPost }>) {
 
       <div className="flex flex-col gap-4 p-6 flex-1 group">
         <div className="flex items-center gap-3">
+          {post.featured && (
+            <Badge variant="accent" className="text-xs">Featured</Badge>
+          )}
           {post.categories?.map((cat) => (
-            <Badge key={cat} variant="accent" className="text-xs">{cat}</Badge>
+            <Badge key={cat} variant="muted" className="text-xs">{cat}</Badge>
           ))}
         </div>
 
