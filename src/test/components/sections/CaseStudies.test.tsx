@@ -177,4 +177,29 @@ describe('CaseStudies', () => {
     render(<CaseStudies />, { wrapper })
     expect(screen.getByRole('region', { name: /case studies/i })).toBeInTheDocument()
   })
+
+  it('renders card and modal without crashing when tags is not an array (covers [] fallback)', async () => {
+    const caseNoTags: CaseStudy = {
+      _id: 'x1',
+      title: 'No Tags Case',
+      client: 'Client Y',
+      sector: 'Tech',
+      outcome: '10x ROI',
+      description: 'A case with no tags.',
+      tags: null as unknown as string[],
+    }
+    mockQuery.mockReturnValue({
+      limit: vi.fn().mockReturnThis(),
+      find: vi.fn().mockResolvedValue({ items: [caseNoTags] }),
+    } as unknown as ReturnType<typeof mockQuery>)
+
+    const { findByRole } = render(<CaseStudies />, { wrapper })
+
+    // Waits for the card to appear — proves the card-level [] fallback (line ~137) is covered
+    await findByRole('button', { name: /view case study: no tags case/i })
+
+    // Open the modal to cover the modal-level [] fallback (line ~188)
+    fireEvent.click(screen.getByRole('button', { name: /view case study: no tags case/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
 })
