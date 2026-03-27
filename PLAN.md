@@ -389,3 +389,86 @@ The Blog section already exists and renders, but currently shows static fallback
 2. Three cards render on the page, each showing a "Featured" badge
 3. `npx vitest run` — all Blog tests pass
 4. `npx tsc --noEmit` — no type errors
+
+---
+
+## Feature: Blog Detail Page (`/blog/:slug`)
+
+### Overview
+Add a full-post detail page accessible by clicking a blog card on the homepage. Introduces `react-router-dom` v6 as the router (none currently installed). Post body content is rendered via Wix's `contentText` fieldset styled with Tailwind's `prose prose-invert` classes (`@tailwindcss/typography` already installed). Ricos rich-content rendering can be added later as a separate enhancement.
+
+### Decisions
+- URL pattern: `/blog/:slug`
+- Back button: `window.history.back()`
+- Content: `contentText` (plain paragraphs) + Tailwind `prose prose-invert`
+- Fallback cards on homepage are **not** clickable (no real Wix slugs)
+- Coverage thresholds must remain at 100%
+
+---
+
+### Phase 1 — Install router
+- [x] `npm install react-router-dom` (includes its own types since v6.4+; add `@types/react-router-dom` only if needed)
+
+### Phase 2 — Router wiring
+- [x] Wrap `<App />` in `<BrowserRouter>` in `src/main.tsx`
+- [x] Refactor `src/App.tsx` to use `<Routes>`:
+  - `<Route path="/" element={<HomePage />} />` — current homepage layout extracted to an inline component or `<HomePage>`
+  - `<Route path="/blog/:slug" element={<BlogPostPage />} />`
+
+### Phase 3 — Type update
+- [x] Add `contentText?: string` to `BlogPost` in `src/types/index.ts`
+
+### Phase 4 — New hook `useWixPost`
+- [x] Create `src/hooks/useWixPost.ts`:
+  - Calls `wixClient.posts.getPostBySlug(slug, { fieldsets: ['CONTENT_TEXT'] })`
+  - Maps response to `BlogPost` including `contentText` and `coverImage` (via `getScaledToFillImageUrl`)
+  - Returns `{ data, isLoading, isError }` via `useQuery`
+  - Key: `['wix-post', slug]`, staleTime: 5 min
+  - Throws on 404 so `isError` is true (don't catch 404 as empty data)
+
+### Phase 5 — `BlogPostPage` component
+- [x] Create `src/pages/BlogPostPage.tsx`:
+  - Reads `:slug` via `useParams()`
+  - Uses `useWixPost(slug)`
+  - **Loading**: full-page skeleton (title bar + content bars)
+  - **Error/not found**: centred message with back link
+  - **Loaded layout**:
+    - `<Header />` (reuse existing)
+    - Back button: `← Back` using `window.history.back()`
+    - Cover image: full-width, `h-[40vh]`, `object-cover` (if present)
+    - Meta row: Featured badge + formatted date + reading time
+    - `<h1>` post title
+    - Body: `contentText` split on `\n` into `<p>` tags, wrapped in `<article className="prose prose-invert prose-lg max-w-3xl mx-auto">`
+    - `<Footer />` (reuse existing)
+
+### Phase 6 — Wire blog cards
+- [x] In `src/components/sections/Blog.tsx`, import `Link` from `react-router-dom`
+- [x] Pass `isCms` prop or check by comparing against `FALLBACK_POSTS` ids to determine clickability
+- [x] Wrap `BlogCard` in `<Link to={/blog/${post.slug}}>` only when rendering live CMS posts
+
+### Phase 7 — Tests
+- [x] Create `src/test/hooks/useWixPost.test.ts`:
+  - Mock `wixClient.posts.getPostBySlug`
+  - Test: maps all fields correctly including `contentText`
+  - Test: `isError` true when API throws
+  - Test: called with correct slug and `CONTENT_TEXT` fieldset
+- [x] Create `src/test/pages/BlogPostPage.test.tsx`:
+  - Test: renders post title and content paragraphs
+  - Test: renders loading skeleton
+  - Test: renders error state
+  - Test: back button is present
+  - Test: cover image renders when `coverImage` present
+  - Test: header and footer rendered
+- [x] Update `tests/fixtures/blog-posts.json` — add `"contentText"` field to fixtures
+- [x] Update `src/test/components/sections/Blog.test.tsx` — add test that CMS post cards render as `<a>` links to `/blog/<slug>`
+
+### Verification
+1. Click a blog card → navigates to `/blog/<slug>`, full post content renders
+2. Back button → returns to previous page
+3. Open `/blog/<slug>` directly in new tab → loads correctly (Vercel SPA rewrite handles it)
+4. `npx vitest run` — all tests pass, 100% coverage maintained
+5. `npx tsc --noEmit` — no type errors
+
+### Further Considerations
+- **Rich formatting**: `contentText` loses inline bold/headings/body-images. Upgrade path: install `@wix/ricos-viewer` and request `RICH_CONTENT` fieldset instead.
+- **SEO**: `<title>` tag won't update per-post without `react-helmet-async` — can be added later.

@@ -7,7 +7,8 @@
     "publishedDate": "2026-02-14T00:00:00Z",
     "readingTime": 6,
     "categories": ["AI Strategy"],
-    "featured": true
+    "featured": true,
+    "contentText": "AI strategies often fail because organisations treat AI as a technology problem rather than a business transformation challenge."
   },
   {
     "_id": "post-2",
@@ -17,7 +18,8 @@
     "publishedDate": "2026-01-28T00:00:00Z",
     "readingTime": 8,
     "categories": ["GenAI", "Governance"],
-    "featured": true
+    "featured": true,
+    "contentText": "Scaling GenAI from pilot to production requires deliberate investment in data governance, model monitoring, and cross-functional alignment."
   },
   {
     "_id": "post-3",
@@ -27,6 +29,7 @@
     "publishedDate": "2026-01-10T00:00:00Z",
     "readingTime": 5,
     "categories": ["Leadership"],
-    "featured": true
+    "featured": true,
+    "contentText": "Board members increasingly ask about AI risk, cost, and competitive positioning. CTOs must be prepared to answer with clarity and confidence."
   }
 ]

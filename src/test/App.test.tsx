@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
 vi.mock('framer-motion')
 vi.mock('react-intersection-observer')
 vi.mock('@/lib/wixClient', () => ({
   wixClient: {
     items: { query: vi.fn() },
-    posts: { listPosts: vi.fn() },
+    posts: { listPosts: vi.fn(), getPostBySlug: vi.fn() },
   },
 }))
 
@@ -24,29 +25,37 @@ beforeEach(() => {
   mockListPosts.mockResolvedValue({ posts: [] })
 })
 
+function renderApp() {
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <App />
+    </MemoryRouter>,
+  )
+}
+
 describe('App', () => {
   it('renders the skip link', () => {
-    render(<App />)
+    renderApp()
     expect(screen.getByRole('link', { name: /skip to main content/i })).toBeInTheDocument()
   })
 
   it('renders the header', () => {
-    render(<App />)
+    renderApp()
     expect(screen.getByRole('banner')).toBeInTheDocument()
   })
 
   it('renders the main content area', () => {
-    render(<App />)
+    renderApp()
     expect(screen.getByRole('main')).toBeInTheDocument()
   })
 
   it('renders the footer', () => {
-    render(<App />)
+    renderApp()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
   it('renders the hero section', () => {
-    render(<App />)
+    renderApp()
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
   })
 })

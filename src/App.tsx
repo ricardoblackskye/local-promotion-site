@@ -1,3 +1,4 @@
+import { Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -8,6 +9,7 @@ import AIFocus from '@/components/sections/AIFocus'
 import CaseStudies from '@/components/sections/CaseStudies'
 import Blog from '@/components/sections/Blog'
 import Contact from '@/components/sections/Contact'
+import BlogPostPage from '@/pages/BlogPostPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,9 +20,9 @@ const queryClient = new QueryClient({
   },
 })
 
-export default function App() {
+function HomePage() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       {/* Skip navigation for accessibility */}
       <a href="#about" className="skip-nav">
         Skip to main content
@@ -39,6 +41,17 @@ export default function App() {
       </main>
 
       <Footer />
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
+      </Routes>
     </QueryClientProvider>
   )
 }

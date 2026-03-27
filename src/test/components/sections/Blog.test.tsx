@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { useInView } from 'react-intersection-observer'
 import React from 'react'
 
@@ -18,7 +19,11 @@ import type { BlogPost } from '@/types'
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return React.createElement(QueryClientProvider, { client }, children)
+  return React.createElement(
+    MemoryRouter,
+    { initialEntries: ['/'] },
+    React.createElement(QueryClientProvider, { client }, children),
+  )
 }
 
 const mockListPosts = vi.mocked(wixClient.posts.listPosts)
@@ -175,5 +180,21 @@ describe('Blog', () => {
     expect(await findByText('Test Post')).toBeInTheDocument()
     // Restore default mock
     vi.mocked(useInView).mockReturnValue({ ref: vi.fn(), inView: true, entry: undefined } as unknown as ReturnType<typeof useInView>)
+  })
+
+  it('wraps CMS post card in a link to /blog/:slug', async () => {
+    const cmsPosts: BlogPost[] = [
+      {
+        _id: 'link-post',
+        title: 'Linked CMS Post',
+        slug: 'linked-cms-post',
+        publishedDate: '2026-01-01T00:00:00Z',
+      },
+    ]
+    mockListPosts.mockResolvedValue({ posts: cmsPosts })
+
+    const { findByRole } = render(<Blog />, { wrapper })
+    const link = await findByRole('link', { name: /read: linked cms post/i })
+    expect(link).toHaveAttribute('href', '/blog/linked-cms-post')
   })
 })

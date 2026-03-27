@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { Calendar, Clock, ArrowUpRight } from 'lucide-react'
@@ -30,8 +31,8 @@ function formatDate(iso: string): string {
   })
 }
 
-function BlogCard({ post }: Readonly<{ post: BlogPost }>) {
-  return (
+function BlogCard({ post, isCms }: Readonly<{ post: BlogPost; isCms: boolean }>) {
+  const inner = (
     <div className="h-full flex flex-col rounded-sm border border-white/[0.08] bg-white/[0.04] transition-all duration-300 card-hover overflow-hidden">
       {/* Thumbnail */}
       {post.coverImage && (
@@ -80,7 +81,14 @@ function BlogCard({ post }: Readonly<{ post: BlogPost }>) {
       </div>
     </div>
   )
-}
+  if (isCms) {
+    return (
+      <Link to={`/blog/${post.slug}`} className="block h-full" aria-label={`Read: ${post.title}`}>
+        {inner}
+      </Link>
+    )
+  }
+  return inner}
 
 export default function Blog() {
   const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: true })
@@ -140,7 +148,7 @@ export default function Blog() {
           >
             {posts.map((post) => (
               <motion.li key={post._id} variants={fadeUp}>
-                <BlogCard post={post} />
+                <BlogCard post={post} isCms={!!(cmsPosts && cmsPosts.length > 0)} />
               </motion.li>
             ))}
           </motion.ul>
