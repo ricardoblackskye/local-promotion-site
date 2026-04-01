@@ -50,6 +50,34 @@ export interface BlogPost {
   richContent?: object
 }
 
+/** Wix CMS image field shape returned by the Data API */
+export interface WixImageField {
+  src: string
+  description?: string
+  altText?: string
+}
+
+export interface HomeSectionTwo {
+  _id: string
+  /** Plain wix:image:// string returned by the Data API */
+  founder: string
+  /** May arrive as a string from Wix — coerce with Number() before use */
+  yearsExperience: number | string
+  clientsServed: number | string
+  /** Raw value e.g. 500 or '500' — displayed as £500M+ */
+  valueDelivered: number | string
+  /** Bio / body copy shown in the right column of the About section */
+  rightText: string
+  /** Pull quote displayed below the bio */
+  quote: string
+  /** Name of the person attributed to the quote */
+  quoteAuthor: string
+  /** Job title of the quote author */
+  quoteRole: string
+  /** Company of the quote author */
+  quoteCompany: string
+}
+
 export interface ContactFormData {
   name: string
   email: string

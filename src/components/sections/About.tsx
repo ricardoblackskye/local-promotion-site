@@ -1,10 +1,16 @@
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
+import DOMPurify from 'dompurify'
 import AnimatedCounter from '@/components/ui/AnimatedCounter'
 import Badge from '@/components/ui/Badge'
 import { STATS } from '@/lib/constants'
-import type { SpeakingEvent, Testimonial } from '@/types'
+import type { SpeakingEvent, HomeSectionTwo } from '@/types'
 import { useWixData } from '@/hooks/useWixData'
+import { wixImageToUrl } from '@/lib/wixClient'
+
+function sanitize(html: string) {
+  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } })
+}
 
 const stagger = {
   hidden: {},
@@ -24,9 +30,17 @@ const fadeUp = {
 export default function About() {
   const { ref, inView } = useInView({ threshold: 0.15, triggerOnce: true })
   const { data: events } = useWixData<SpeakingEvent>('SpeakingEvents', 5)
-  const { data: testimonials } = useWixData<Testimonial>('Testimonials', 1)
+  const { data: homeSectionTwoData } = useWixData<HomeSectionTwo>('HomeSectionTwo', 1)
 
-  const featuredTestimonial = testimonials?.[0]
+  const homeSectionTwo = homeSectionTwoData?.[0]
+
+  const derivedStats = homeSectionTwo
+    ? [
+        { value: Number(homeSectionTwo.yearsExperience), suffix: '+', label: 'Years Experience' },
+        { value: Number(homeSectionTwo.clientsServed), suffix: '+', label: 'Clients Served' },
+        { value: Number(homeSectionTwo.valueDelivered), prefix: '£', suffix: 'M+', label: 'Value Delivered' },
+      ]
+    : STATS
 
   return (
     <section
@@ -50,11 +64,12 @@ export default function About() {
             {/* Headshot placeholder with glow border */}
             <div className="relative inline-block">
               <div
+                key={homeSectionTwo?.founder ?? 'fallback'}
                 className="w-72 h-72 sm:w-80 sm:h-80 rounded-sm border-2 border-accent/40 bg-white/[0.04] flex items-center justify-center overflow-hidden"
                 style={{ boxShadow: '0 0 40px rgba(0,212,255,0.15)' }}
               >
                 <img
-                  src="/headshot.jpg"
+                  src={homeSectionTwo?.founder ? wixImageToUrl(homeSectionTwo.founder, 320, 320) : '/headshot.jpg'}
                   alt="Richard Lloyd — senior leader and AI consultant"
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -75,7 +90,7 @@ export default function About() {
 
             {/* Stats */}
             <div className="flex gap-8 mt-10">
-              {STATS.map((stat) => (
+              {derivedStats.map((stat) => (
                 <div key={stat.label} className="text-center">
                   <p className="font-display font-bold text-3xl text-accent" aria-label={`${stat.prefix ?? ''}${stat.value}${stat.suffix}`}>
                     <AnimatedCounter
@@ -100,29 +115,36 @@ export default function About() {
               </h2>
             </motion.div>
 
-            <motion.p variants={fadeUp} className="text-white/60 leading-relaxed">
-              With over two decades at the forefront of digital transformation and AI adoption, Richard Lloyd has guided C-suite leaders, boards, and global teams through some of the most complex technological shifts in modern business.
-            </motion.p>
+            {homeSectionTwo?.rightText && (
+              <motion.div
+                variants={fadeUp}
+                className="text-white/60 leading-relaxed prose prose-invert prose-p:my-3 max-w-none"
+                dangerouslySetInnerHTML={{ __html: sanitize(homeSectionTwo.rightText) }}
+              />
+            )}
 
-            <motion.p variants={fadeUp} className="text-white/60 leading-relaxed">
-              His approach blends strategic clarity with deep technical fluency — translating the promise of AI into measurable outcomes. From large-scale enterprise transformations to focused advisory engagements, Richard brings a rare combination of boardroom presence and hands-on delivery experience.
-            </motion.p>
-
-            {/* Featured testimonial */}
-            {featuredTestimonial && (
+            {/* Pull quote */}
+            {homeSectionTwo?.quote && (
               <motion.blockquote
                 variants={fadeUp}
                 className="border-l-2 border-accent/40 pl-6 mt-8"
               >
-                <p className="text-white/70 italic leading-relaxed">
-                  &ldquo;{featuredTestimonial.quote}&rdquo;
-                </p>
-                <footer className="mt-3">
-                  <cite className="not-italic">
-                    <span className="text-white font-semibold text-sm">{featuredTestimonial.author}</span>
-                    <span className="text-muted text-sm"> — {featuredTestimonial.role}, {featuredTestimonial.company}</span>
-                  </cite>
-                </footer>
+                <div
+                  className="text-white/70 italic leading-relaxed prose prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: sanitize(homeSectionTwo.quote) }}
+                />
+                {homeSectionTwo.quoteAuthor && (
+                  <footer className="mt-3">
+                    <cite className="not-italic">
+                      <span className="text-white font-semibold text-sm">{homeSectionTwo.quoteAuthor}</span>
+                      {(homeSectionTwo.quoteRole || homeSectionTwo.quoteCompany) && (
+                        <span className="text-muted text-sm">
+                          {' — '}{[homeSectionTwo.quoteRole, homeSectionTwo.quoteCompany].filter(Boolean).join(', ')}
+                        </span>
+                      )}
+                    </cite>
+                  </footer>
+                )}
               </motion.blockquote>
             )}
           </motion.div>
