@@ -349,6 +349,61 @@ CONTACT_EMAIL=richard@yourdomain.com
 
 ---
 
+## Phase 8 — HomeSectionTwo CMS Integration
+
+Replace hardcoded About section placeholder content with live data from the `HomeSectionTwo` Wix CMS collection.
+
+### Wix Collection: `HomeSectionTwo`
+
+| Field | Type | Description |
+|---|---|---|
+| `founder` | Image (wix:image://) | Founder headshot displayed in About section |
+| `yearsExperience` | Number | Raw integer — displayed with `+` suffix |
+| `clientsServed` | Number | Raw integer — displayed with `+` suffix |
+| `valueDelivered` | Number | Raw integer — displayed with `£` prefix and `M+` suffix |
+
+> **To extend:** Add new fields to the collection in Wix Studio, add them to the `HomeSectionTwo` type in `src/types/index.ts`, and consume them in `About.tsx`.
+
+### Implementation Steps
+
+#### 1 — Type definition (`src/types/index.ts`)
+Add `HomeSectionTwo` interface:
+```ts
+export interface HomeSectionTwo {
+  _id: string
+  founder: string        // wix:image:// URL
+  yearsExperience: number
+  clientsServed: number
+  valueDelivered: number
+}
+```
+
+#### 2 — Image URL utility (`src/lib/wixClient.ts`)
+Export `wixImageToUrl(wixUrl: string, width?: number, height?: number): string`
+- Converts `wix:image://v1/{imageId}/{filename}` → `https://static.wixstatic.com/media/{imageId}/v1/fill/w_{w},h_{h},al_c,q_85/{filename}`
+- Passthrough for plain `https://` URLs
+- Returns `''` for falsy input (triggers `onError` fallback in `<img>`)
+
+#### 3 — About section (`src/components/sections/About.tsx`)
+- Fetch via `useWixData<HomeSectionTwo>('HomeSectionTwo', 1)`, extract first item
+- Derive animated stat values from Wix data; fall back to `STATS` constants while loading/on error
+- Set `<img src>` to `wixImageToUrl(item?.founder, 320, 320)`, fallback to `/headshot.jpg`
+- Existing `onError` handler already shows the "RL" initials if both sources fail
+
+### Fallback Strategy
+| State | Image | Stats |
+|---|---|---|
+| Loading | `/headshot.jpg` | Hardcoded `STATS` constants (`20+`, `50+`, `£500M+`) |
+| Wix data loaded | Wix `founder` image | Wix `yearsExperience`, `clientsServed`, `valueDelivered` |
+| Wix error / empty | `/headshot.jpg` → "RL" initials | Hardcoded `STATS` constants |
+
+### Progress
+- [x] Add `HomeSectionTwo` type to `src/types/index.ts`
+- [x] Add `wixImageToUrl` utility to `src/lib/wixClient.ts`
+- [x] Update `src/components/sections/About.tsx` to consume hook and derived stats
+
+---
+
 ## Feature: Wix Featured Blog Posts on Main Page
 
 ### Overview
