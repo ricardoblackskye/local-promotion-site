@@ -70,7 +70,7 @@ export default function About() {
               >
                 <img
                   src={homeSectionTwo?.founder ? wixImageToUrl(homeSectionTwo.founder, 320, 320) : '/headshot.jpg'}
-                  alt="Richard Lloyd — senior leader and AI consultant"
+                  alt="Richard Lloyd CMgr MCMI — senior leader and AI consultant"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.currentTarget

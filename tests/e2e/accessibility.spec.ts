@@ -97,7 +97,7 @@ test.describe('Accessibility', () => {
       if (!heading) return false
       let node: Element | null = heading.parentElement
       while (node) {
-        if (parseFloat(getComputedStyle(node).opacity) < 0.9) return false
+        if (Number.parseFloat(getComputedStyle(node).opacity) < 0.9) return false
         if (node.id === 'contact') break
         node = node.parentElement
       }

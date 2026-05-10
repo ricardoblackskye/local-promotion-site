@@ -3,9 +3,14 @@ import { items } from '@wix/data'
 import { posts } from '@wix/blog'
 
 const clientId = import.meta.env.VITE_WIX_CLIENT_ID
+const siteId = import.meta.env.VITE_WIX_SITE_ID
 
 if (!clientId) {
   console.warn('[Wix] VITE_WIX_CLIENT_ID is not set. CMS content will not load.')
+}
+
+if (!siteId) {
+  console.warn('[Wix] VITE_WIX_SITE_ID is not set. Blog APIs may fail with UNAUTHENTICATED errors.')
 }
 
 export const wixClient = createClient({
@@ -21,7 +26,11 @@ try {
   const tokens = await wixClient.auth.generateVisitorTokens()
   localStorage.setItem('wixTokens', JSON.stringify(tokens))
 } catch (err) {
-  console.warn('[Wix] Failed to generate visitor tokens. Blog posts will be unavailable. Check VITE_WIX_CLIENT_ID in .env.', err)
+  console.warn(
+    '[Wix] Failed to generate visitor tokens (network/CORS or OAuth app binding issue). ' +
+      'Confirm VITE_WIX_CLIENT_ID and VITE_WIX_SITE_ID are for the same Wix site, and that localhost is allowed in Wix Headless OAuth settings.',
+    err,
+  )
 }
 
 /**

@@ -9,13 +9,13 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Contact', sectionId: 'contact' },
 ]
 
-export const SITE_NAME = 'Richard Lloyd'
+export const SITE_NAME = 'Richard Lloyd CMgr MCMI'
 
 export const SITE_TAGLINE = 'AI Strategy & Senior Leadership'
 
 export const ROLES = [
   'Senior Leader',
-  'AI Strategist',
+  'Strategist',
   'Transformation Consultant',
   'Digital Pioneer',
   'Board Advisor',

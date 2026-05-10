@@ -63,7 +63,7 @@ export default function AIFocus() {
               <p className="font-display text-xl font-semibold text-white">
                 &ldquo;Every organisation will be transformed by AI. The question is whether you lead that transformation or respond to it.&rdquo;
               </p>
-              <p className="text-accent text-sm mt-2">— Richard Lloyd</p>
+              <p className="text-accent text-sm mt-2">— Richard Lloyd CMgr MCMI</p>
             </motion.div>
 
             {/* Capability chips */}
