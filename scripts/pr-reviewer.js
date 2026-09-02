@@ -65,7 +65,7 @@ if (event.pull_request) {
   prNumber = event.pull_request.number;
   repoOwner = event.pull_request.base.repo.owner.login;
   repoName = event.pull_request.base.repo.name;
-  prDiffUrl = event.pull_request.diff_url;
+  prDiffUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/pulls/${prNumber}`;
 } else if (event.issue && event.issue.pull_request) {
   prNumber = event.issue.number;
   repoOwner = event.repository.owner.login;
