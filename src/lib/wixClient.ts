@@ -21,7 +21,7 @@ export const wixClient = createClient({
 // Clear any stale token first — old tokens are bound to the origin they were created on,
 // which causes CORS failures if the port changes (e.g. dev server restarts on a new port).
 localStorage.removeItem('wixTokens')
-
+void (async () => {
 try {
   const tokens = await wixClient.auth.generateVisitorTokens()
   localStorage.setItem('wixTokens', JSON.stringify(tokens))
@@ -32,6 +32,8 @@ try {
     err,
   )
 }
+
+})()
 
 /**
  * Convert a Wix image value to a static.wixstatic.com fill URL.
