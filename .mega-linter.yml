@@ -1,0 +1,51 @@
+---
+# MegaLinter repository configuration
+# https://megalinter.io/latest/configuration/
+
+# Respect the repository's .gitignore so dependencies and generated files are
+# not sent to individual linters.
+IGNORE_GITIGNORED_FILES: true
+
+# Keep the report output stable for the GitHub Actions artifact step.
+REPORT_OUTPUT_FOLDER: megalinter-reports
+LOG_FILE: mega-linter.log
+
+# Exclude third-party vendor tooling (.specify) from all MegaLinter descriptors
+FILTER_REGEX_EXCLUDE: "(^|/)(\\\\.specify)/"
+
+# Allow zizmor to use the workflow token for its online ref-confusion audit.
+ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
+  - GITHUB_TOKEN
+
+# Disable TypeScript Standard because ts-standard is incompatible with
+# the TypeScript version used in this project. Type checking is handled
+# by tsc during build.
+DISABLE_LINTERS:
+  - TYPESCRIPT_STANDARD
+  - REPOSITORY_DEVSKIM
+
+# Keep Grype strict; allow the scanner to refresh its database on each run.
+REPOSITORY_GRYPE_TIMEOUT_SECONDS: 600
+
+# These directories are generated locally, by CI, or third-party vendor tools and should never be linted.
+ADDITIONAL_EXCLUDED_DIRECTORIES:
+  - .specify
+  - node_modules
+  - dist
+  - dist-ssr
+  - coverage
+  - playwright-report
+  - test-results
+
+# Exclude Wix-related files and the agent-eve-style PR reviewer script from
+# JavaScript Standard linter (intentional double-quote + semicolon style).
+JAVASCRIPT_STANDARD_FILTER_REGEX_EXCLUDE: "(?i).*(wix|stripe|pr-reviewer).*\\.js$"
+
+# Provide a root directory so lychee can resolve root-relative links
+# (e.g. /vite.svg in index.html). The .lycheeignore file then handles
+# any exclusions.
+SPELL_LYCHEE_ARGUMENTS: --root-dir .
+# Exclude auto-generated package-lock.json; the opencollective.com URLs it
+# contains (npm package maintainer links) are unreachable by automated
+# checkers (403 Forbidden) and are not user-facing content.
+SPELL_LYCHEE_FILTER_REGEX_EXCLUDE: '(package-lock\.json)'

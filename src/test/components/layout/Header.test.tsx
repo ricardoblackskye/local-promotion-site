@@ -20,7 +20,7 @@ function mountHeader() {
 describe('Header', () => {
   it('renders the site name', () => {
     mountHeader()
-    expect(screen.getAllByText('Richard Lloyd').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Richard Lloyd CMgr MCMI').length).toBeGreaterThan(0)
   })
 
   it('renders all nav items', () => {
@@ -72,7 +72,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const logo = screen.getByRole('button', { name: /richard lloyd — back to top/i })
+    const logo = screen.getByRole('button', { name: /richard lloyd cmgr mcmi — back to top/i })
     fireEvent.click(logo)
 
     expect(document.getElementById).toHaveBeenCalledWith('hero')
@@ -116,7 +116,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue(null)
 
     mountHeader()
-    const logoBtn = screen.getByRole('button', { name: /richard lloyd — back to top/i })
+    const logoBtn = screen.getByRole('button', { name: /richard lloyd cmgr mcmi — back to top/i })
     expect(() => fireEvent.click(logoBtn)).not.toThrow()
   })
 
