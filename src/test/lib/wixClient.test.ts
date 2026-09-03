@@ -2,21 +2,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Module-level mock spy — accessible inside vi.mock factory because it starts with "mock"
 const mockGenerateVisitorTokens = vi.fn()
-const mockOAuthStrategy = vi.fn((opts: unknown) => opts)
+const mockCreateClient = vi.fn(() => ({
+  items: { query: vi.fn() },
+  posts: { listPosts: vi.fn() },
+  auth: { generateVisitorTokens: mockGenerateVisitorTokens },
+}))
 
 // Hoist the mock so static imports inside wixClient.ts are intercepted
 vi.mock('@wix/sdk', () => ({
-  createClient: vi.fn(() => ({
-    items: { query: vi.fn() },
-    posts: { listPosts: vi.fn() },
-    auth: { generateVisitorTokens: mockGenerateVisitorTokens },
-  })),
-  OAuthStrategy: mockOAuthStrategy,
+  createClient: mockCreateClient,
+  OAuthStrategy: vi.fn((opts: unknown) => opts),
 }))
 
 beforeEach(() => {
   vi.resetModules()
-  mockOAuthStrategy.mockClear()
+  mockCreateClient.mockClear()
   vi.unstubAllEnvs()
   localStorage.removeItem('wixTokens')
   // Reset call history and set default: reject so the catch branch runs
@@ -30,16 +30,15 @@ afterEach(() => {
 })
 
 describe.skipIf(Boolean(process.env.CI))('wixClient', () => {
-  it('passes the configured site ID to OAuthStrategy', async () => {
+  it('passes the configured site ID as the Wix site header', async () => {
     vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
     vi.stubEnv('VITE_WIX_SITE_ID', 'test-site-id')
 
     await import('@/lib/wixClient')
 
-    expect(mockOAuthStrategy).toHaveBeenCalledWith({
-      clientId: 'test-client-id',
-      siteId: 'test-site-id',
-    })
+    expect(mockCreateClient).toHaveBeenCalledWith(expect.objectContaining({
+      headers: { 'wix-site-id': 'test-site-id' },
+    }))
   })
 
   it('exports wixClient', async () => {

@@ -104,6 +104,8 @@
     "prio",
     "SDLC",
     "tweetsodium",
-    "minmax"
+    "minmax",
+    "unstub",
+    "wixstatic"
   ]
 }

@@ -4,7 +4,7 @@
 
 **Goal:** Make the Wix Blog API requests from the Vercel deployment use the configured Wix site ID so the production blog request receives the correct CORS policy and returns the site's live posts.
 
-**Architecture:** Keep the existing browser-side Wix SDK integration and visitor-token flow. Pass the already-configured `VITE_WIX_SITE_ID` through to `OAuthStrategy`, making the SDK's site selection explicit without changing the CMS data hooks or deployment architecture.
+**Architecture:** Keep the existing browser-side Wix SDK integration and visitor-token flow. Pass the already-configured `VITE_WIX_SITE_ID` as the SDK's `wix-site-id` client header, making site selection explicit without changing the CMS data hooks or deployment architecture.
 
 **Tech Stack:** React 18, TypeScript, Vite, `@wix/sdk`, `@wix/data`, `@wix/blog`, Vitest.
 
@@ -21,22 +21,22 @@
   ```
 - The Vercel site successfully receives live Wix CMS data for other sections, so the Wix client ID, visitor authentication, deployment, and general Wix connectivity are working.
 - `src/hooks/useWixBlog.ts` calls `wixClient.posts.listPosts(...)`; the failure is swallowed into `{ posts: [] }`, after which `Blog.tsx` uses fallback posts.
-- `src/lib/wixClient.ts` already reads `import.meta.env.VITE_WIX_SITE_ID` at line 6 and warns when it is missing, but currently constructs the strategy as:
+- `src/lib/wixClient.ts` already reads `import.meta.env.VITE_WIX_SITE_ID` at line 6 and warns when it is missing, but currently constructs the client without a site header:
   ```ts
   OAuthStrategy({ clientId: clientId ?? '' })
   ```
   Therefore the configured site ID is not passed to the SDK.
-- Wix's current SDK documentation defines `OAuthStrategy` with an optional `siteId` parameter and describes it as the ID of the Wix site to make API calls to.
+- The installed SDK (`@wix/sdk` 1.21.5) does **not** accept `siteId` in `OAuthStrategy`; TypeScript rejects that property. Its `createClient` API accepts default headers, and the SDK's supported site-routing header is `wix-site-id`.
 - The user has already configured the site ID in Vercel and wants the code change followed by a later redeploy.
 - Existing untracked `.vercel/` metadata and `scripts/diag-wix-blog.mjs` were preserved in a stash before branch creation; they are unrelated to the production fix and must not be added by this plan.
 
 ## Root cause (verified)
 
-The app reads the production Wix site ID but discards it when creating the Wix OAuth strategy. As a result, the Blog API request does not receive explicit site routing, and Wix returns a CORS policy for the localhost origin rather than `https://black-skye.vercel.app`. The CMS Data API happens to work without explicit routing, which is why this defect is isolated to the Blog API in the deployed app.
+The app reads the production Wix site ID but discards it when creating the Wix client. As a result, the Blog API request does not receive explicit site routing, and Wix returns a CORS policy for the localhost origin rather than `https://black-skye.vercel.app`. The CMS Data API happens to work without explicit routing, which is why this defect is isolated to the Blog API in the deployed app.
 
 ## Intended fix
 
-Modify only the Wix client construction so `siteId` is passed when it is configured:
+Modify only the Wix client construction so the supported `wix-site-id` header is included when the site ID is configured:
 
 ```ts
 auth: OAuthStrategy({
@@ -59,9 +59,9 @@ Keep `siteId` optional for local or existing configurations where it is absent. 
 
 **Step 1: Write the failing test**
 
-Extend the existing client-construction test setup to assert that when `VITE_WIX_CLIENT_ID` and `VITE_WIX_SITE_ID` are configured, the OAuth strategy is created with both values. Use the existing module-mocking approach in `src/test/lib/wixClient.test.ts`; do not expose real credentials in test output.
+Extend the existing client-construction test setup to assert that when `VITE_WIX_CLIENT_ID` and `VITE_WIX_SITE_ID` are configured, `createClient` receives `{ 'wix-site-id': 'test-site-id' }` in its headers. Use the existing module-mocking approach in `src/test/lib/wixClient.test.ts`; do not expose real credentials in test output.
 
-The assertion must distinguish the desired `{ clientId: 'test-client-id', siteId: 'test-site-id' }` options from the current implementation, so it must fail before the production change.
+The assertion must distinguish the desired `{ headers: { 'wix-site-id': 'test-site-id' } }` client configuration from the current implementation, so it must fail before the production change.
 
 **Step 2: Run the focused test to verify RED**
 
@@ -71,7 +71,7 @@ Run:
 npm test -- src/test/lib/wixClient.test.ts
 ```
 
-Expected: FAIL because the current `OAuthStrategy` call omits `siteId`.
+Expected: FAIL because the current `createClient` call omits the `wix-site-id` header.
 
 **Step 3: Commit the RED test**
 
@@ -82,23 +82,23 @@ git commit -m "test(wix): cover explicit site routing"
 
 ---
 
-## Task 2: Pass the configured site ID to the Wix SDK
+## Task 2: Pass the configured site ID to the Wix SDK request header
 
-**Objective:** Forward the environment-provided site ID to the OAuth strategy while preserving the optional behavior when it is absent.
+**Objective:** Forward the environment-provided site ID as the SDK's supported site-routing header while preserving the optional behavior when it is absent.
 
 **Files:**
 - Modify: `src/lib/wixClient.ts:16-19`
 
 **Step 1: Implement the minimal fix**
 
-Change the strategy construction to:
+Change the client construction to:
 
 ```ts
 export const wixClient = createClient({
   modules: { items, posts },
+  headers: siteId ? { 'wix-site-id': siteId } : undefined,
   auth: OAuthStrategy({
     clientId: clientId ?? '',
-    siteId: siteId || undefined,
   }),
 })
 ```
@@ -113,7 +113,7 @@ Run:
 npm test -- src/test/lib/wixClient.test.ts
 ```
 
-Expected: PASS, including the new explicit-site-routing assertion and all existing Wix client tests.
+Expected: PASS, including the new explicit-header-routing assertion and all existing Wix client tests.
 
 **Step 3: Commit the implementation**
 
@@ -183,7 +183,7 @@ The expected result is a successful Blog API response from the Vercel origin and
 
 ## Files likely to change
 
-- `src/lib/wixClient.ts` — pass `siteId` to `OAuthStrategy`.
+- `src/lib/wixClient.ts` — pass `siteId` as the SDK's `wix-site-id` client header.
 - `src/test/lib/wixClient.test.ts` — regression coverage for the forwarded site ID.
 - `.hermes/plans/2026-09-03_wix-blog-site-id-1.md` — this implementation plan.
 
