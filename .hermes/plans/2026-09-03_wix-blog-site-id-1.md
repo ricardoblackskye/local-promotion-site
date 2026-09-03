@@ -4,7 +4,9 @@
 
 **Goal:** Make the Wix Blog API requests from the Vercel deployment use the configured Wix site ID so the production blog request receives the correct CORS policy and returns the site's live posts.
 
-**Architecture:** Keep the existing browser-side Wix SDK integration and visitor-token flow. Pass the already-configured `VITE_WIX_SITE_ID` as the SDK's `wix-site-id` client header, making site selection explicit without changing the CMS data hooks or deployment architecture.
+**Current status:** The first implementation hypothesis was tested and rejected. The installed SDK accepts a global `wix-site-id` header, but Wix rejects that browser preflight in this project and returns `WDE0117: MetaSite not found`. The header has been removed; this branch does not yet contain a validated production fix.
+
+**Architecture:** Preserve the existing browser-side Wix SDK integration and visitor-token flow while investigating the Blog-specific CORS behavior. Do not add a global site-routing header until Wix confirms that mechanism is supported for this client and browser origin.
 
 **Tech Stack:** React 18, TypeScript, Vite, `@wix/sdk`, `@wix/data`, `@wix/blog`, Vitest.
 
@@ -26,17 +28,17 @@
   OAuthStrategy({ clientId: clientId ?? '' })
   ```
   Therefore the configured site ID is not passed to the SDK.
-- The installed SDK (`@wix/sdk` 1.21.5) does **not** accept `siteId` in `OAuthStrategy`; TypeScript rejects that property. Its `createClient` API accepts default headers, and the SDK's supported site-routing header is `wix-site-id`.
+- The installed SDK (`@wix/sdk` 1.21.5) does **not** accept `siteId` in `OAuthStrategy`; TypeScript rejects that property. A global `wix-site-id` header was tested as an alternative, but Wix rejected it during browser preflight and returned `WDE0117: MetaSite not found`.
 - The user has already configured the site ID in Vercel and wants the code change followed by a later redeploy.
 - Existing untracked `.vercel/` metadata and `scripts/diag-wix-blog.mjs` were preserved in a stash before branch creation; they are unrelated to the production fix and must not be added by this plan.
 
 ## Root cause (verified)
 
-The app reads the production Wix site ID but discards it when creating the Wix client. As a result, the Blog API request does not receive explicit site routing, and Wix returns a CORS policy for the localhost origin rather than `https://black-skye.vercel.app`. The CMS Data API happens to work without explicit routing, which is why this defect is isolated to the Blog API in the deployed app.
+The app's Blog API request receives a CORS policy for `http://localhost:3001` rather than `https://black-skye.vercel.app`, while other Wix CMS requests work. The first attempted remedy—adding `wix-site-id` globally—was rejected by Wix preflight and caused all CMS requests to fail with `WDE0117: MetaSite not found`; that remedy has been reverted. The remaining Blog-specific root cause is not yet confirmed.
 
 ## Intended fix
 
-Modify only the Wix client construction so the supported `wix-site-id` header is included when the site ID is configured:
+The rejected implementation is recorded for audit only and must not be redeployed:
 
 ```ts
 auth: OAuthStrategy({
@@ -45,7 +47,7 @@ auth: OAuthStrategy({
 }),
 ```
 
-Keep `siteId` optional for local or existing configurations where it is absent. Do not change the `featured: true` behavior, fallback content, Vercel settings, Wix settings, or unrelated UI in this issue.
+Do not change the `featured: true` behavior, fallback content, Vercel settings, Wix settings, or unrelated UI until the Blog-specific cause is established.
 
 ---
 
@@ -82,24 +84,23 @@ git commit -m "test(wix): cover explicit site routing"
 
 ---
 
-## Task 2: Pass the configured site ID to the Wix SDK request header
+## Task 2: Implement the validated Blog-specific fix
 
-**Objective:** Forward the environment-provided site ID as the SDK's supported site-routing header while preserving the optional behavior when it is absent.
+**Objective:** Apply only a Wix-supported fix identified by the follow-up investigation; this task is not complete on the current branch.
 
 **Files:**
 - Modify: `src/lib/wixClient.ts:16-19`
 
 **Step 1: Implement the minimal fix**
 
-Change the client construction to:
+The previously attempted change was:
 
 ```ts
 export const wixClient = createClient({
   modules: { items, posts },
+  // Do not add a global wix-site-id header without Wix-side confirmation.
   headers: siteId ? { 'wix-site-id': siteId } : undefined,
-  auth: OAuthStrategy({
-    clientId: clientId ?? '',
-  }),
+  auth: OAuthStrategy({ clientId: clientId ?? '' }),
 })
 ```
 
@@ -113,7 +114,7 @@ Run:
 npm test -- src/test/lib/wixClient.test.ts
 ```
 
-Expected: PASS, including the new explicit-header-routing assertion and all existing Wix client tests.
+Expected: PASS for the eventual validated fix and all existing Wix client tests. The rejected header assertion was removed after Wix rejected the global header in Preview.
 
 **Step 3: Commit the implementation**
 
@@ -183,8 +184,8 @@ The expected result is a successful Blog API response from the Vercel origin and
 
 ## Files likely to change
 
-- `src/lib/wixClient.ts` — pass `siteId` as the SDK's `wix-site-id` client header.
-- `src/test/lib/wixClient.test.ts` — regression coverage for the forwarded site ID.
+- `src/lib/wixClient.ts` — candidate Blog/client change once a Wix-supported mechanism is confirmed.
+- `src/test/lib/wixClient.test.ts` — regression coverage for the eventual validated behavior.
 - `.hermes/plans/2026-09-03_wix-blog-site-id-1.md` — this implementation plan.
 
 No changes are planned to `src/hooks/useWixBlog.ts`, `src/components/sections/Blog.tsx`, `vercel.json`, or Vercel/Wix configuration in this issue.
@@ -192,7 +193,18 @@ No changes are planned to `src/hooks/useWixBlog.ts`, `src/components/sections/Bl
 ## Risks and open questions
 
 - **Risk:** The Wix Blog API may still require an additional Wix-side origin setting after explicit site routing. The production browser Network response will be the acceptance check; do not claim resolution without it.
-- **Risk:** Vercel must rebuild after the code change because Vite embeds `VITE_WIX_SITE_ID` at build time.
-- **Compatibility:** `siteId: siteId || undefined` preserves behavior when the variable is missing and avoids passing an empty string.
+- **Risk:** Vercel must rebuild after any client-side code or `VITE_*` change because Vite embeds those values at build time.
+- **Compatibility:** The working client construction remains unchanged after the rejected global-header experiment was reverted.
 - **Scope:** This issue addresses the production Blog API/CORS failure only. It does not implement the separate visual/content changes originally described in #1 (retitling the section, changing the tile design, or increasing the displayed count to six).
 - **Open question:** If the post-list request remains CORS-blocked after this change and a redeploy, return to Phase 1 of systematic debugging and compare the exact Wix client/site configuration and request headers rather than adding another speculative configuration change.
+
+## Implementation outcome / follow-up investigation
+
+The attempted `wix-site-id` header implementation was reverted after Preview browser evidence showed it broke every Wix request:
+
+```text
+Request header field wix-site-id is not allowed by Access-Control-Allow-Headers in preflight response
+WDE0117: MetaSite not found.
+```
+
+This proves that `wix-site-id` cannot be added as a global browser header for this Wix client/site configuration. The working CMS behavior is restored, but the original Blog-specific CORS issue remains unresolved. The next fix must be based on a Wix-supported Blog/client configuration or an architecture that avoids the browser Blog API CORS limitation; do not redeploy the rejected header implementation.

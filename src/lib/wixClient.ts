@@ -15,7 +15,6 @@ if (!siteId) {
 
 export const wixClient = createClient({
   modules: { items, posts },
-  headers: siteId ? { 'wix-site-id': siteId } : undefined,
   auth: OAuthStrategy({ clientId: clientId ?? '' }),
 })
 
