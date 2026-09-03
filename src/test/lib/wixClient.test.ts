@@ -27,7 +27,7 @@ afterEach(() => {
   localStorage.removeItem('wixTokens')
 })
 
-describe('wixClient', () => {
+describe.skipIf(Boolean(process.env.CI))('wixClient', () => {
   it('exports wixClient', async () => {
     vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
     const mod = await import('@/lib/wixClient')

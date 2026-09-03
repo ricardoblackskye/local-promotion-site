@@ -46,11 +46,9 @@ test.describe('Navigation', () => {
     const header = page.locator('header[role="banner"]')
     await expect(header).toBeVisible()
     await page.evaluate(() => window.scrollTo(0, window.innerHeight))
-    await page.waitForTimeout(400)
-    const hasBackdrop = await header.evaluate((el) =>
-      el.className.includes('backdrop-blur'),
-    )
-    expect(hasBackdrop).toBe(true)
+    // Auto-retry until the sticky/backdrop class is applied — avoids a brittle
+    // fixed-timing read that flakes on webkit (Safari) under CI load.
+    await expect(header).toHaveClass(/backdrop-blur/)
   })
 
   test('nav links are keyboard accessible', async ({ page }) => {
