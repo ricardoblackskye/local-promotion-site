@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
@@ -25,11 +25,14 @@ function wrapper({ children }: { children: React.ReactNode }) {
 }
 
 function response(body: unknown, ok = true, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    ok,
+  const result = new Response(JSON.stringify(body), {
     status,
     headers: { 'Content-Type': 'application/json' },
   })
+  if (!ok) {
+    Object.defineProperty(result, 'ok', { value: false })
+  }
+  return result
 }
 
 beforeEach(() => {

@@ -106,6 +106,8 @@
     "tweetsodium",
     "minmax",
     "unstub",
-    "wixstatic"
+    "wixstatic",
+    "smaxage",
+    "maxage"
   ]
 }
