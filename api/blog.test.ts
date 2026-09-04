@@ -125,13 +125,34 @@ describe('api/blog handler', () => {
     expect(errorSpy).toHaveBeenCalled()
   })
 
+  it('writes the response through the Vercel response adapter', async () => {
+    vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
+    const handler = await loadHandler()
+    const headers = new Map<string, string>()
+    let statusCode = 0
+    let body = ''
+    const vercelResponse = {
+      setHeader: (name: string, value: string) => headers.set(name, value),
+      end: (value?: string) => { body = value ?? '' },
+      get statusCode() { return statusCode },
+      set statusCode(value: number) { statusCode = value },
+    }
+
+    await handler(makeRequest(), vercelResponse)
+
+    expect(statusCode).toBe(200)
+    expect(headers.get('content-type')).toContain('application/json')
+    expect(JSON.parse(body)).toEqual([expect.objectContaining({ _id: 'post-1' })])
+  })
+
   it('returns 405 for unsupported methods', async () => {
     vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
     const handler = await loadHandler()
 
     const response = await handler(makeRequest('POST'))
 
-    expect(response.status).toBe(405)
-    expect(await response.json()).toEqual({ error: 'Method not allowed' })
+    expect(response).toBeInstanceOf(Response)
+    expect(response && response.status).toBe(405)
+    expect(response && await response.json()).toEqual({ error: 'Method not allowed' })
   })
 })

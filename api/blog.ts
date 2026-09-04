@@ -47,6 +47,12 @@ function mapPost(post: WixPost): BlogPostResponse {
   }
 }
 
+interface VercelResponse {
+  statusCode?: number
+  setHeader(name: string, value: string): void
+  end(body?: string): void
+}
+
 function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -57,15 +63,24 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
   })
 }
 
-export default async function handler(req: Request): Promise<Response> {
+function sendResponse(res: VercelResponse, response: Response): Promise<void> {
+  res.statusCode = response.status
+  response.headers.forEach((value, name) => res.setHeader(name, value))
+  return response.text().then((body) => res.end(body))
+}
+
+export default async function handler(req: Request, res?: VercelResponse): Promise<Response | void> {
+  const finish = (response: Response): Promise<Response | void> =>
+    res ? sendResponse(res, response) : response
+
   if (req.method !== 'GET') {
-    return json({ error: 'Method not allowed' }, 405)
+    return finish(json({ error: 'Method not allowed' }, 405))
   }
 
   const clientId = process.env.VITE_WIX_CLIENT_ID
   if (!clientId) {
     console.error('[blog] VITE_WIX_CLIENT_ID is not configured')
-    return json({ error: 'Server misconfiguration' }, 500)
+    return finish(json({ error: 'Server misconfiguration' }, 500))
   }
 
   try {
@@ -77,11 +92,11 @@ export default async function handler(req: Request): Promise<Response> {
       .listPosts({ paging: { limit: 6 }, featured: true })
     const rawPosts = (response as { posts?: WixPost[] }).posts ?? []
 
-    return json(rawPosts.map(mapPost), 200, {
+    return finish(json(rawPosts.map(mapPost), 200, {
       'Cache-Control': 's-maxage=300, stale-while-revalidate=600',
-    })
+    }))
   } catch (error) {
     console.error('[blog] Wix request failed:', error instanceof Error ? error.message : 'unknown error')
-    return json({ error: 'Blog service unavailable' }, 502)
+    return finish(json({ error: 'Blog service unavailable' }, 502))
   }
 }
