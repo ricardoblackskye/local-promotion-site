@@ -30,13 +30,24 @@ if (typeof HTMLCanvasElement !== 'undefined') {
 // --- requestAnimationFrame stub (jsdom / browser-like envs only) ---
 if (globalThis.window !== undefined) {
   let rafId = 0
+  const rafTimers = new Map<number, ReturnType<typeof setTimeout>>()
   globalThis.requestAnimationFrame = (cb: FrameRequestCallback): number => {
     rafId += 1
     const id = rafId
-    setTimeout(() => cb(performance.now()), 0)
+    const timer = setTimeout(() => {
+      rafTimers.delete(id)
+      cb(performance.now())
+    }, 0)
+    rafTimers.set(id, timer)
     return id
   }
-  globalThis.cancelAnimationFrame = vi.fn()
+  globalThis.cancelAnimationFrame = vi.fn((id: number) => {
+    const timer = rafTimers.get(id)
+    if (timer !== undefined) {
+      clearTimeout(timer)
+      rafTimers.delete(id)
+    }
+  }) as typeof cancelAnimationFrame
 
   // --- ResizeObserver stub ---
   globalThis.ResizeObserver = class ResizeObserver {

@@ -4,6 +4,7 @@ import { useInView } from 'react-intersection-observer'
 import { Send, Linkedin, Mail, Calendar, CheckCircle, AlertCircle } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
+import AnimatedSectionHeader from '@/components/ui/AnimatedSectionHeader'
 import type { ContactFormData } from '@/types'
 
 type SubmitStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -94,10 +95,8 @@ export default function Contact() {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" aria-hidden="true" />
 
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
+        <AnimatedSectionHeader
+          inView={inView}
           className="mb-16 text-center max-w-2xl mx-auto"
         >
           <Badge className="mb-4">Get In Touch</Badge>
@@ -107,7 +106,7 @@ export default function Contact() {
           <p className="text-muted leading-relaxed">
             Whether you have a specific challenge in mind or simply want to explore what&apos;s possible, start the conversation below.
           </p>
-        </motion.div>
+        </AnimatedSectionHeader>
 
         <motion.div
           variants={stagger}

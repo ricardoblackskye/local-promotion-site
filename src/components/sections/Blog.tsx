@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import { Calendar, Clock, ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Calendar, Clock } from 'lucide-react'
+import AnimatedSectionHeader from '@/components/ui/AnimatedSectionHeader'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { useWixBlog } from '@/hooks/useWixBlog'
@@ -103,10 +104,8 @@ export default function Blog() {
       aria-labelledby="blog-heading"
     >
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
+        <AnimatedSectionHeader
+          inView={inView}
           className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12"
         >
           <div>
@@ -126,7 +125,7 @@ export default function Blog() {
             Read all insights
             <ArrowUpRight size={16} aria-hidden="true" />
           </Button>
-        </motion.div>
+        </AnimatedSectionHeader>
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

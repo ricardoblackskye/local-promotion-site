@@ -1,13 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
+import { mockFetchResponse, queryWrapper } from './test-utils'
 
 vi.mock('@/lib/wixClient', () => ({
   wixClient: {
-    posts: {
-      listPosts: vi.fn(),
-    },
+    posts: { listPosts: vi.fn() },
   },
 }))
 
@@ -17,140 +14,61 @@ import { wixClient } from '@/lib/wixClient'
 import { useWixBlog } from '@/hooks/useWixBlog'
 
 const mockedListPosts = vi.mocked(wixClient.posts.listPosts)
+const originalFetch = globalThis.fetch
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
-  return React.createElement(QueryClientProvider, { client }, children)
+const wrapper = queryWrapper
+const response = mockFetchResponse
+
+async function expectProxyError() {
+  const { result } = renderHook(() => useWixBlog(), { wrapper })
+  await waitFor(() => expect(result.current.isError).toBe(true))
+  expect(result.current.error).toEqual(expect.any(Error))
 }
 
 beforeEach(() => {
   mockedListPosts.mockReset()
+  globalThis.fetch = vi.fn().mockResolvedValue(response({ posts: [] }))
 })
 
-describe.skipIf(Boolean(process.env.CI))('useWixBlog', () => {
-  it('maps a well-formed post', async () => {
-    const publishedDate = new Date('2026-01-15T10:00:00Z')
-    mockedListPosts.mockResolvedValue({
-      posts: [
-        {
-          _id: 'post-1',
-          title: 'Test Title',
-          excerpt: 'Test excerpt',
-          slug: 'test-slug',
-          media: { wixMedia: { image: 'https://example.com/img.jpg' } },
-          firstPublishedDate: publishedDate,
-          minutesToRead: 5,
-          categoryIds: ['cat-uuid-1', 'cat-uuid-2'],
-        },
-      ],
-    } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
+afterEach(() => {
+  globalThis.fetch = originalFetch
+})
+
+describe('useWixBlog', () => {
+  it('fetches mapped posts through the same-origin API', async () => {
+    const publishedDate = '2026-01-15T10:00:00.000Z'
+    vi.mocked(globalThis.fetch).mockResolvedValue(response([{
+        _id: 'post-1',
+        title: 'Test Title',
+        excerpt: 'Test excerpt',
+        slug: 'test-slug',
+        coverImage: 'https://example.com/img.jpg',
+        publishedDate,
+        readingTime: 5,
+        categories: [],
+        featured: true,
+      }]))
 
     const { result } = renderHook(() => useWixBlog(3), { wrapper })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    const posts = result.current.data!
-    expect(posts).toHaveLength(1)
-    expect(posts[0]._id).toBe('post-1')
-    expect(posts[0].title).toBe('Test Title')
-    expect(posts[0].excerpt).toBe('Test excerpt')
-    expect(posts[0].slug).toBe('test-slug')
-    expect(posts[0].coverImage).toMatch(/^https:\/\//)
-    expect(posts[0].publishedDate).toBe(publishedDate.toISOString())
-    expect(posts[0].readingTime).toBe(5)
-    expect(posts[0].categories).toEqual([])
+    expect(result.current.data).toEqual([{
+      _id: 'post-1',
+      title: 'Test Title',
+      excerpt: 'Test excerpt',
+      slug: 'test-slug',
+      coverImage: 'https://example.com/img.jpg',
+      publishedDate,
+      readingTime: 5,
+      categories: [],
+      featured: true,
+    }])
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/blog')
+    expect(mockedListPosts).not.toHaveBeenCalled()
   })
 
-  it('fills in defaults for missing fields', async () => {
-    mockedListPosts.mockResolvedValue({
-      posts: [
-        {
-          _id: null,
-          title: null,
-          excerpt: null,
-          slug: null,
-          media: null,
-          firstPublishedDate: null,
-          minutesToRead: null,
-          categoryIds: null,
-        },
-      ],
-    } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
-
-    const { result } = renderHook(() => useWixBlog(), { wrapper })
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    const posts = result.current.data!
-    expect(typeof posts[0]._id).toBe('string')
-    expect(posts[0]._id.length).toBeGreaterThan(0)
-    expect(posts[0].title).toBe('Untitled')
-    expect(posts[0].excerpt).toBeUndefined()
-    expect(posts[0].slug).toBe('')
-    expect(posts[0].coverImage).toBeUndefined()
-    expect(posts[0].readingTime).toBeUndefined()
-    expect(posts[0].categories).toEqual([])
-  })
-
-  it('categories is always empty array (categoryIds are UUIDs, labels require separate API call)', async () => {
-    mockedListPosts.mockResolvedValue({
-      posts: [
-        {
-          _id: 'p1',
-          title: 'x',
-          slug: 's',
-          firstPublishedDate: new Date(),
-          categoryIds: ['cat-1', 'cat-2', 'cat-3'],
-        },
-      ],
-    } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
-
-    const { result } = renderHook(() => useWixBlog(), { wrapper })
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    expect(result.current.data![0].categories).toEqual([])
-  })
-
-  it('returns undefined coverImage when media.wixMedia.image is missing', async () => {
-    mockedListPosts.mockResolvedValue({
-      posts: [
-        {
-          _id: 'p2',
-          title: 'y',
-          slug: 's',
-          media: { wixMedia: { image: null } },
-          firstPublishedDate: new Date(),
-        },
-      ],
-    } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
-
-    const { result } = renderHook(() => useWixBlog(), { wrapper })
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    expect(result.current.data![0].coverImage).toBeUndefined()
-  })
-
-  it('returns undefined coverImage when media.wixMedia is missing', async () => {
-    mockedListPosts.mockResolvedValue({
-      posts: [
-        {
-          _id: 'p3',
-          title: 'z',
-          slug: 's',
-          media: { wixMedia: null },
-          firstPublishedDate: new Date(),
-        },
-      ],
-    } as unknown as Awaited<ReturnType<typeof mockedListPosts>>)
-
-    const { result } = renderHook(() => useWixBlog(), { wrapper })
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    expect(result.current.data![0].coverImage).toBeUndefined()
-  })
-
-  it('returns empty array when the API call throws', async () => {
-    mockedListPosts.mockRejectedValue(new Error('network error'))
+  it('returns an empty list when the proxy returns no posts', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue(response([]))
 
     const { result } = renderHook(() => useWixBlog(), { wrapper })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -158,12 +76,15 @@ describe.skipIf(Boolean(process.env.CI))('useWixBlog', () => {
     expect(result.current.data).toEqual([])
   })
 
-  it('returns empty array when posts field is missing', async () => {
-    mockedListPosts.mockResolvedValue({})
+  it('rejects when the proxy returns a non-OK response', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue(response({ error: 'Blog service unavailable' }, false, 502))
 
-    const { result } = renderHook(() => useWixBlog(), { wrapper })
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    await expectProxyError()
+  })
 
-    expect(result.current.data).toEqual([])
+  it('rejects when the proxy request fails', async () => {
+    vi.mocked(globalThis.fetch).mockRejectedValue(new Error('network error'))
+
+    await expectProxyError()
   })
 })

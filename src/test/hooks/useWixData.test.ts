@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
+import { queryWrapper } from './test-utils'
 
 vi.mock('@/lib/wixClient', () => ({
   wixClient: {
@@ -16,12 +15,7 @@ import { useWixData } from '@/hooks/useWixData'
 
 const mockedQuery = vi.mocked(wixClient.items.query)
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
-  return React.createElement(QueryClientProvider, { client }, children)
-}
+const wrapper = queryWrapper
 
 beforeEach(() => {
   mockedQuery.mockReset()
