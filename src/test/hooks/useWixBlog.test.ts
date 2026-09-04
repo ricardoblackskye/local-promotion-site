@@ -44,7 +44,7 @@ afterEach(() => {
   globalThis.fetch = originalFetch
 })
 
-describe.skipIf(Boolean(process.env.CI))('useWixBlog', () => {
+describe('useWixBlog', () => {
   it('fetches mapped posts through the same-origin API', async () => {
     const publishedDate = '2026-01-15T10:00:00.000Z'
     vi.mocked(globalThis.fetch).mockResolvedValue(response([{
