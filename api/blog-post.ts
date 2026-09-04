@@ -67,7 +67,8 @@ async function handler(req: Request, res?: VercelResponse): Promise<Response | v
 
   if (req.method !== 'GET') return finish(json({ error: 'Method not allowed' }, 405))
 
-  const slug = new URL(req.url).searchParams.get('slug')?.trim()
+  const requestUrl = new URL(req.url, 'http://localhost')
+  const slug = requestUrl.searchParams.get('slug')?.trim()
   if (!slug) return finish(json({ error: 'Slug is required' }, 400))
 
   const clientId = process.env.VITE_WIX_CLIENT_ID
