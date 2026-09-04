@@ -89,8 +89,8 @@ async function handler(req: Request, res?: VercelResponse): Promise<Response | v
     ) => Promise<{ post?: WixPost }>)(slug, { fieldsets: ['CONTENT_TEXT', 'RICH_CONTENT'] })
     if (!response.post) return finish(json({ error: 'Post not found' }, 404))
     return finish(json(mapPost(response.post, slug), 200))
-  } catch (error) {
-    console.error('[blog-post] Wix request failed:', error instanceof Error ? error.message : 'unknown error')
+  } catch {
+    console.error('[blog-post] Wix request failed')
     return finish(json({ error: 'Blog service unavailable' }, 502))
   }
 }

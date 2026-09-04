@@ -31,9 +31,13 @@ function toIsoDate(value: Date | string | null | undefined): string {
   return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString()
 }
 
-function mapPost(post: WixPost): BlogPostResponse {
+const MAX_FEATURED_POSTS = 6
+
+function mapPost(post: WixPost): BlogPostResponse | null {
+  if (!post._id) return null
+
   return {
-    _id: post._id ?? crypto.randomUUID(),
+    _id: post._id,
     title: post.title ?? 'Untitled',
     excerpt: post.excerpt ?? undefined,
     slug: post.slug ?? '',
@@ -53,7 +57,7 @@ interface VercelResponse {
   end(body?: string): void
 }
 
-function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
+function json(body: unknown, status: number, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
@@ -96,14 +100,18 @@ async function handler(req: Request, res?: VercelResponse): Promise<Response | v
       auth: OAuthStrategy({ clientId }),
     })
     const response = await wixClient.posts
-      .listPosts({ paging: { limit: 6 }, featured: true })
+      .listPosts({ paging: { limit: MAX_FEATURED_POSTS }, featured: true })
     const rawPosts = (response as { posts?: WixPost[] }).posts ?? []
+    const mappedPosts = rawPosts
+      .map(mapPost)
+      .filter((post): post is BlogPostResponse => post !== null)
+      .slice(0, MAX_FEATURED_POSTS)
 
-    return finish(json(rawPosts.map(mapPost), 200, {
+    return finish(json(mappedPosts, 200, {
       'Cache-Control': 's-maxage=300, stale-while-revalidate=600',
     }))
-  } catch (error) {
-    console.error('[blog] Wix request failed:', error instanceof Error ? error.message : 'unknown error')
+  } catch {
+    console.error('[blog] Wix request failed')
     return finish(json({ error: 'Blog service unavailable' }, 502))
   }
 }

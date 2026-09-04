@@ -105,7 +105,7 @@ describe('api/blog handler', () => {
     mockListPosts.mockResolvedValue({
       posts: [
         {
-          _id: null,
+          _id: 'post-with-missing-fields',
           title: null,
           excerpt: null,
           slug: null,
@@ -123,8 +123,12 @@ describe('api/blog handler', () => {
     expect(response.status).toBe(200)
     expect(body).toHaveLength(1)
     expect(body[0]).toMatchObject({ title: 'Untitled', slug: '', categories: [] })
-    expect(body[0]._id).toEqual(expect.any(String))
+    expect(body[0]._id).toBe('post-with-missing-fields')
     expect(body[0].publishedDate).toEqual(expect.any(String))
+
+    mockListPosts.mockResolvedValue({ posts: [{ title: 'No source ID' }] })
+    const withoutId = await (await loadHandler())(makeRequest())
+    expect(await withoutId.json()).toEqual([])
     expect(body[0]).not.toHaveProperty('coverImage')
   })
 
