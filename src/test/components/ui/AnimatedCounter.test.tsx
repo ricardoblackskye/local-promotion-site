@@ -40,6 +40,16 @@ describe('AnimatedCounter', () => {
     expect(screen.getByLabelText('10')).toBeInTheDocument()
   })
 
+  it('cancels a pending animation when unmounted', async () => {
+    const cancelSpy = vi.spyOn(globalThis, 'cancelAnimationFrame')
+    const { unmount } = render(<AnimatedCounter value={100} />)
+
+    await act(async () => { vi.advanceTimersByTime(100) })
+    unmount()
+
+    expect(cancelSpy).toHaveBeenCalled()
+  })
+
   it('accepts a custom className', () => {
     render(<AnimatedCounter value={1} className="my-class" />)
     expect(screen.getByLabelText('1').className).toContain('my-class')

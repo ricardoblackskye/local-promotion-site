@@ -18,6 +18,7 @@ export default function AnimatedCounter({
 }: Readonly<AnimatedCounterProps>) {
   const [count, setCount] = useState(0)
   const hasAnimated = useRef(false)
+  const animationFrame = useRef<number | null>(null)
   const { ref, inView } = useInView({ threshold: 0.5, triggerOnce: true })
 
   useEffect(() => {
@@ -33,13 +34,21 @@ export default function AnimatedCounter({
       const eased = 1 - Math.pow(1 - progress, 3)
       setCount(Math.floor(eased * value))
       if (progress < 1) {
-        requestAnimationFrame(animate)
+        animationFrame.current = requestAnimationFrame(animate)
       } else {
+        animationFrame.current = null
         setCount(value)
       }
     }
 
-    requestAnimationFrame(animate)
+    animationFrame.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationFrame.current !== null) {
+        cancelAnimationFrame(animationFrame.current)
+        animationFrame.current = null
+      }
+    }
   }, [inView, value, duration])
 
   return (
