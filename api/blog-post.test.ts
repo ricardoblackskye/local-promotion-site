@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { makeVercelResponse } from '@/test/test-utils'
 
 const mockGetPostBySlug = vi.hoisted(() => vi.fn())
 const mockCreateClient = vi.hoisted(() => vi.fn(() => ({ posts: { getPostBySlug: mockGetPostBySlug } })))
@@ -71,21 +72,13 @@ describe('api/blog-post handler', () => {
 
   it('supports the Vercel adapter for error responses', async () => {
     const handler = await loadHandler()
-    const headers = new Map<string, string>()
-    let statusCode = 0
-    let body = ''
-    const vercelResponse = {
-      setHeader: (name: string, value: string) => headers.set(name, value),
-      end: (value?: string) => { body = value ?? '' },
-      get statusCode() { return statusCode },
-      set statusCode(value: number) { statusCode = value },
-    }
+    const adapter = makeVercelResponse()
 
-    await handler(request('http://localhost/api/blog-post'), vercelResponse)
+    await handler(request('http://localhost/api/blog-post'), adapter.response)
 
-    expect(statusCode).toBe(400)
-    expect(headers.get('content-type')).toContain('application/json')
-    expect(JSON.parse(body)).toEqual({ error: 'Slug is required' })
+    expect(adapter.statusCode).toBe(400)
+    expect(adapter.headers.get('content-type')).toContain('application/json')
+    expect(JSON.parse(adapter.body)).toEqual({ error: 'Slug is required' })
   })
 
   it('returns generic errors for missing config and upstream failure', async () => {

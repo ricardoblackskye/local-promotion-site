@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { makeVercelResponse } from '@/test/test-utils'
 
 const mockGenerateVisitorTokens = vi.hoisted(() => vi.fn())
 const mockListPosts = vi.hoisted(() => vi.fn())
@@ -154,21 +155,13 @@ describe('api/blog handler', () => {
 
   it('supports the Vercel adapter for configuration errors', async () => {
     const handler = await loadHandler()
-    const headers = new Map<string, string>()
-    let statusCode = 0
-    let body = ''
-    const vercelResponse = {
-      setHeader: (name: string, value: string) => headers.set(name, value),
-      end: (value?: string) => { body = value ?? '' },
-      get statusCode() { return statusCode },
-      set statusCode(value: number) { statusCode = value },
-    }
+    const adapter = makeVercelResponse()
 
-    await handler(makeRequest(), vercelResponse)
+    await handler(makeRequest(), adapter.response)
 
-    expect(statusCode).toBe(500)
-    expect(headers.get('content-type')).toContain('application/json')
-    expect(JSON.parse(body)).toEqual({ error: 'Server misconfiguration' })
+    expect(adapter.statusCode).toBe(500)
+    expect(adapter.headers.get('content-type')).toContain('application/json')
+    expect(JSON.parse(adapter.body)).toEqual({ error: 'Server misconfiguration' })
   })
 
   it('returns 502 with a generic error when Wix fails', async () => {
@@ -189,21 +182,13 @@ describe('api/blog handler', () => {
   it('writes the response through the Vercel response adapter', async () => {
     vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
     const handler = await loadHandler()
-    const headers = new Map<string, string>()
-    let statusCode = 0
-    let body = ''
-    const vercelResponse = {
-      setHeader: (name: string, value: string) => headers.set(name, value),
-      end: (value?: string) => { body = value ?? '' },
-      get statusCode() { return statusCode },
-      set statusCode(value: number) { statusCode = value },
-    }
+    const adapter = makeVercelResponse()
 
-    await handler(makeRequest(), vercelResponse)
+    await handler(makeRequest(), adapter.response)
 
-    expect(statusCode).toBe(200)
-    expect(headers.get('content-type')).toContain('application/json')
-    expect(JSON.parse(body)).toEqual([expect.objectContaining({ _id: 'post-1' })])
+    expect(adapter.statusCode).toBe(200)
+    expect(adapter.headers.get('content-type')).toContain('application/json')
+    expect(JSON.parse(adapter.body)).toEqual([expect.objectContaining({ _id: 'post-1' })])
   })
 
   it('returns 405 for unsupported methods', async () => {
