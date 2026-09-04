@@ -69,9 +69,16 @@ function sendResponse(res: VercelResponse, response: Response): Promise<void> {
   return response.text().then((body) => res.end(body))
 }
 
-export default async function handler(req: Request, res?: VercelResponse): Promise<Response | void> {
-  const finish = (response: Response): Promise<Response | void> =>
-    res ? sendResponse(res, response) : response
+async function handler(req: Request): Promise<Response>
+async function handler(req: Request, res: VercelResponse): Promise<void>
+async function handler(req: Request, res?: VercelResponse): Promise<Response | void> {
+  const finish = async (response: Response): Promise<Response | void> => {
+    if (res) {
+      await sendResponse(res, response)
+      return
+    }
+    return response
+  }
 
   if (req.method !== 'GET') {
     return finish(json({ error: 'Method not allowed' }, 405))
@@ -100,3 +107,5 @@ export default async function handler(req: Request, res?: VercelResponse): Promi
     return finish(json({ error: 'Blog service unavailable' }, 502))
   }
 }
+
+export default handler
