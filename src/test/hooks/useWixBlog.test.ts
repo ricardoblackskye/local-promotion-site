@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
+import { mockFetchResponse, queryWrapper } from './test-utils'
 
 vi.mock('@/lib/wixClient', () => ({
   wixClient: {
@@ -17,22 +16,13 @@ import { useWixBlog } from '@/hooks/useWixBlog'
 const mockedListPosts = vi.mocked(wixClient.posts.listPosts)
 const originalFetch = globalThis.fetch
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
-  return React.createElement(QueryClientProvider, { client }, children)
-}
+const wrapper = queryWrapper
+const response = mockFetchResponse
 
-function response(body: unknown, ok = true, status = 200): Response {
-  const result = new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  })
-  if (!ok) {
-    Object.defineProperty(result, 'ok', { value: false })
-  }
-  return result
+async function expectProxyError() {
+  const { result } = renderHook(() => useWixBlog(), { wrapper })
+  await waitFor(() => expect(result.current.isError).toBe(true))
+  expect(result.current.error).toEqual(expect.any(Error))
 }
 
 beforeEach(() => {
@@ -89,18 +79,12 @@ describe('useWixBlog', () => {
   it('rejects when the proxy returns a non-OK response', async () => {
     vi.mocked(globalThis.fetch).mockResolvedValue(response({ error: 'Blog service unavailable' }, false, 502))
 
-    const { result } = renderHook(() => useWixBlog(), { wrapper })
-    await waitFor(() => expect(result.current.isError).toBe(true))
-
-    expect(result.current.error).toEqual(expect.any(Error))
+    await expectProxyError()
   })
 
   it('rejects when the proxy request fails', async () => {
     vi.mocked(globalThis.fetch).mockRejectedValue(new Error('network error'))
 
-    const { result } = renderHook(() => useWixBlog(), { wrapper })
-    await waitFor(() => expect(result.current.isError).toBe(true))
-
-    expect(result.current.error).toEqual(expect.any(Error))
+    await expectProxyError()
   })
 })

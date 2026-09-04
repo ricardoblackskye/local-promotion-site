@@ -1,23 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
+import { queryWrapper, mockFetchResponse } from './test-utils'
 
 import { useWixPost } from '@/hooks/useWixPost'
 import type { BlogPost } from '@/types'
 
 const originalFetch = globalThis.fetch
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return React.createElement(QueryClientProvider, { client }, children)
-}
-
-function response(body: unknown, ok = true, status = 200): Response {
-  const result = new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
-  if (!ok) Object.defineProperty(result, 'ok', { value: false })
-  return result
-}
+const wrapper = queryWrapper
+const response = mockFetchResponse
 
 const fullPost: BlogPost = {
   _id: 'abc123', title: 'Test Post Title', excerpt: 'A short excerpt.', slug: 'test-post',
