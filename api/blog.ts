@@ -1,6 +1,6 @@
 import { createClient, OAuthStrategy } from '@wix/sdk'
 import { posts } from '@wix/blog'
-import { type WixPost, type VercelResponse, asApiHandler, handleWixRequest, json, mapWixPost } from './blog-shared'
+import { type WixPost, type VercelResponse, asApiHandler, handleWixRequest, json, mapWixPost } from './blog-shared.js'
 
 const MAX_FEATURED_POSTS = 6
 
