@@ -90,5 +90,18 @@ describe.skipIf(Boolean(process.env.CI))('wixClient', () => {
     expect(mod.wixClient).toBeDefined()
     expect(warnSpy).toHaveBeenCalled()
   })
+
+  it('converts Wix image references and preserves absolute URLs', async () => {
+    vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
+    const { wixImageToUrl } = await import('@/lib/wixClient')
+
+    expect(wixImageToUrl(null)).toBe('')
+    expect(wixImageToUrl('')).toBe('')
+    expect(wixImageToUrl('https://example.com/image.jpg')).toBe('https://example.com/image.jpg')
+    expect(wixImageToUrl({ src: 'https://example.com/object.jpg' })).toBe('https://example.com/object.jpg')
+    expect(wixImageToUrl('not-a-wix-image')).toBe('')
+    expect(wixImageToUrl('wix:image://v1/file-id/file-name.jpg#originWidth=100&originHeight=100'))
+      .toContain('static.wixstatic.com/media/file-id')
+  })
 })
 
