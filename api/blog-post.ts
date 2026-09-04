@@ -1,6 +1,6 @@
 import { createClient, OAuthStrategy } from '@wix/sdk'
 import { posts } from '@wix/blog'
-import { type WixPost, type VercelResponse, asApiHandler, handleWixRequest, json, mapWixPost } from './blog-shared'
+import { type WixPost, type VercelResponse, asApiHandler, handleWixRequest, json, mapWixPost } from './blog-shared.js'
 
 async function handler(req: Request, res?: VercelResponse): Promise<Response | void> {
   const requestUrl = new URL(req.url, 'http://localhost')

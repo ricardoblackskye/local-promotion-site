@@ -1,6 +1,13 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { makeVercelResponse } from '@/test/test-utils'
+
+it('uses an explicit ESM extension for the shared Vercel module', () => {
+  const source = readFileSync(resolve(process.cwd(), 'api/blog.ts'), 'utf8')
+  expect(source).toContain("from './blog-shared.js'")
+})
 
 const mockGenerateVisitorTokens = vi.hoisted(() => vi.fn())
 const mockListPosts = vi.hoisted(() => vi.fn())
