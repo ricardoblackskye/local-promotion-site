@@ -28,6 +28,12 @@ function json(body: unknown, status = 200): Response {
   })
 }
 
+function toIsoDate(value: Date | string | null | undefined): string {
+  if (!value) return new Date().toISOString()
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString()
+}
+
 function mapPost(post: WixPost, slug: string) {
   return {
     _id: post._id ?? '',
@@ -37,9 +43,7 @@ function mapPost(post: WixPost, slug: string) {
     coverImage: post.media?.wixMedia?.image
       ? getScaledToFillImageUrl(post.media.wixMedia.image, 1200, 630, {})
       : undefined,
-    publishedDate: post.firstPublishedDate
-      ? new Date(post.firstPublishedDate).toISOString()
-      : new Date().toISOString(),
+    publishedDate: toIsoDate(post.firstPublishedDate),
     readingTime: post.minutesToRead ?? undefined,
     categories: [],
     featured: post.featured ?? undefined,

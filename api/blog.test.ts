@@ -100,6 +100,44 @@ describe('api/blog handler', () => {
     }
   })
 
+  it('maps missing and malformed Wix fields defensively', async () => {
+    vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
+    mockListPosts.mockResolvedValue({
+      posts: [
+        {
+          _id: null,
+          title: null,
+          excerpt: null,
+          slug: null,
+          media: null,
+          firstPublishedDate: 'not-a-date',
+          minutesToRead: null,
+          featured: null,
+        },
+      ],
+    })
+
+    const response = await (await loadHandler())(makeRequest())
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toHaveLength(1)
+    expect(body[0]).toMatchObject({ title: 'Untitled', slug: '', categories: [] })
+    expect(body[0]._id).toEqual(expect.any(String))
+    expect(body[0].publishedDate).toEqual(expect.any(String))
+    expect(body[0]).not.toHaveProperty('coverImage')
+  })
+
+  it('handles an absent posts collection as an empty list', async () => {
+    vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
+    mockListPosts.mockResolvedValue({})
+
+    const response = await (await loadHandler())(makeRequest())
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual([])
+  })
+
   it('returns 500 when the Wix client ID is missing', async () => {
     const handler = await loadHandler()
 
@@ -108,6 +146,25 @@ describe('api/blog handler', () => {
     expect(response.status).toBe(500)
     expect(await response.json()).toEqual({ error: 'Server misconfiguration' })
     expect(mockCreateClient).not.toHaveBeenCalled()
+  })
+
+  it('supports the Vercel adapter for configuration errors', async () => {
+    const handler = await loadHandler()
+    const headers = new Map<string, string>()
+    let statusCode = 0
+    let body = ''
+    const vercelResponse = {
+      setHeader: (name: string, value: string) => headers.set(name, value),
+      end: (value?: string) => { body = value ?? '' },
+      get statusCode() { return statusCode },
+      set statusCode(value: number) { statusCode = value },
+    }
+
+    await handler(makeRequest(), vercelResponse)
+
+    expect(statusCode).toBe(500)
+    expect(headers.get('content-type')).toContain('application/json')
+    expect(JSON.parse(body)).toEqual({ error: 'Server misconfiguration' })
   })
 
   it('returns 502 with a generic error when Wix fails', async () => {

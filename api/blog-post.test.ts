@@ -36,6 +36,58 @@ describe('api/blog-post handler', () => {
     expect(response.status).toBe(404)
   })
 
+  it('maps missing and malformed Wix fields defensively', async () => {
+    vi.stubEnv('VITE_WIX_CLIENT_ID', 'test-client-id')
+    mockGetPostBySlug.mockResolvedValue({
+      post: {
+        _id: null,
+        title: null,
+        excerpt: null,
+        slug: null,
+        media: { wixMedia: { image: null } },
+        firstPublishedDate: 'not-a-date',
+        minutesToRead: null,
+        featured: null,
+        contentText: null,
+        richContent: null,
+      },
+    })
+
+    const response = await (await loadHandler())(request('http://localhost/api/blog-post?slug=fallback-slug'))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toMatchObject({
+      title: 'Untitled',
+      slug: 'fallback-slug',
+      categories: [],
+    })
+    expect(body._id).toEqual(expect.any(String))
+    expect(body.publishedDate).toEqual(expect.any(String))
+    expect(body).not.toHaveProperty('coverImage')
+    expect(body).not.toHaveProperty('contentText')
+    expect(body).not.toHaveProperty('richContent')
+  })
+
+  it('supports the Vercel adapter for error responses', async () => {
+    const handler = await loadHandler()
+    const headers = new Map<string, string>()
+    let statusCode = 0
+    let body = ''
+    const vercelResponse = {
+      setHeader: (name: string, value: string) => headers.set(name, value),
+      end: (value?: string) => { body = value ?? '' },
+      get statusCode() { return statusCode },
+      set statusCode(value: number) { statusCode = value },
+    }
+
+    await handler(request('http://localhost/api/blog-post'), vercelResponse)
+
+    expect(statusCode).toBe(400)
+    expect(headers.get('content-type')).toContain('application/json')
+    expect(JSON.parse(body)).toEqual({ error: 'Slug is required' })
+  })
+
   it('returns generic errors for missing config and upstream failure', async () => {
     const handler = await loadHandler()
     expect((await handler(request())).status).toBe(500)
