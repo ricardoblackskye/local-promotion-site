@@ -108,6 +108,7 @@
     "unstub",
     "wixstatic",
     "smaxage",
-    "maxage"
+    "maxage",
+    "fieldsets"
   ]
 }
