@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
@@ -14,8 +15,8 @@ vi.mock('@/lib/wixClient', () => ({
 import { wixClient } from '@/lib/wixClient'
 import App from '@/App'
 
-const mockQuery = vi.mocked(wixClient.items.query)
-const mockListPosts = vi.mocked(wixClient.posts.listPosts)
+const mockQuery = vi.mocked(wixClient.items.query) as unknown as Mock
+const mockListPosts = vi.mocked(wixClient.posts.listPosts) as unknown as Mock
 
 beforeEach(() => {
   mockQuery.mockReturnValue({

@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { queryWrapper } from './test-utils'
@@ -13,7 +14,7 @@ vi.mock('@/lib/wixClient', () => ({
 import { wixClient } from '@/lib/wixClient'
 import { useWixData } from '@/hooks/useWixData'
 
-const mockedQuery = vi.mocked(wixClient.items.query)
+const mockedQuery = vi.mocked(wixClient.items.query) as unknown as Mock
 
 const wrapper = queryWrapper
 
