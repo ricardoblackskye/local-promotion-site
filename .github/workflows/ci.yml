@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # #19: pinned - ubuntu-latest moved to 26.04, which the pinned
+    # Playwright (^1.42.1) cannot install browsers on. See #19 before changing this.
 
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -36,7 +37,8 @@ jobs:
         if: github.event_name == 'pull_request'
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # #19: pinned - ubuntu-latest moved to 26.04, which the pinned
+    # Playwright (^1.42.1) cannot install browsers on. See #19 before changing this.
     needs: test
 
     steps:
