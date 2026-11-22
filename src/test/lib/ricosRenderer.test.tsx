@@ -328,7 +328,6 @@ describe('renderRichContent', () => {
               type: 'TEXT',
               textData: {
                 text: 'Malicious',
-                // eslint-disable-next-line no-script-url
                 decorations: [{ type: 'LINK', linkData: { link: { url: 'javascript:alert(1)' } } }],
               },
             },
