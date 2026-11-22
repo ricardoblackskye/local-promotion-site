@@ -1,0 +1,14 @@
+{
+  "threshold": 2,
+  "minTokens": 50,
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/test-results/**",
+    "**/playwright-report/**",
+    "**/src/test/**",
+    "**/tests/**",
+    "**/__mocks__/**"
+  ]
+}
