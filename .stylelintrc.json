@@ -1,0 +1,26 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      { "ignoreAtRules": ["tailwind", "apply", "screen", "layer", "variants", "responsive"] }
+    ],
+    "at-rule-prelude-no-invalid": null,
+    "font-family-name-quotes": "always-unless-keyword",
+    "property-no-vendor-prefix": [
+      true,
+      {
+        "ignoreProperties": [
+          "-webkit-text-size-adjust",
+          "-webkit-font-smoothing",
+          "-moz-osx-font-smoothing",
+          "-webkit-backdrop-filter"
+        ]
+      }
+    ],
+    "selector-pseudo-element-no-unknown": [
+      true,
+      { "ignorePseudoElements": ["-webkit-scrollbar", "-webkit-scrollbar-track", "-webkit-scrollbar-thumb"] }
+    ]
+  }
+}

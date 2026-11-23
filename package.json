@@ -19,7 +19,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "lint:css": "stylelint \"src/**/*.css\""
   },
   "dependencies": {
     "@tanstack/react-query": "^5.28.0",
@@ -57,6 +58,8 @@
     "eslint-plugin-react-refresh": "^0.4.6",
     "jsdom": "^29.0.1",
     "postcss": "^8.4.38",
+    "stylelint": "^18.1.0",
+    "stylelint-config-standard": "^41.1.0",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.2.2",
     "vite": "^8.0.16",
