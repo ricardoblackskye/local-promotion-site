@@ -101,25 +101,46 @@ test.describe('Accessibility', () => {
     // AA outright. #6f6f6f is exactly #898989 at ~80% opacity over black. The token
     // was never the problem; the measurement was taken mid-transition.
     //
-    // So wait for the text-bearing elements axe will actually measure to settle,
-    // whatever schedule each of them is on.
-    await page.waitForFunction(() => {
-      const section = document.querySelector('#contact')
-      if (!section) return false
-      const measurable = section.querySelectorAll(
-        'p, span, a, h1, h2, h3, h4, h5, h6, li, label, td, th',
-      )
-      if (measurable.length === 0) return false
-      return Array.from(measurable).every((el) => {
-        let node: Element | null = el
-        while (node) {
-          if (Number.parseFloat(getComputedStyle(node).opacity) < 0.99) return false
-          if (node.id === 'contact') break
-          node = node.parentElement
+    // So wait for the elements axe will actually measure to settle, whatever schedule
+    // each of them is on. Two exclusions, both deliberate:
+    //  - aria-hidden elements: axe ignores them for the contrast rule
+    //  - anything with a running CSS animation. The status dot uses Tailwind's
+    //    animate-pulse, which oscillates opacity 1 <-> 0.5 and would NEVER settle,
+    //    hanging this wait and failing for an entirely new reason.
+    const unsettled = (): Promise<string[]> =>
+      page.evaluate(() => {
+        const section = document.querySelector('#contact')
+        if (!section) return ['#contact not found']
+        const measurable = section.querySelectorAll(
+          'p, span, a, h1, h2, h3, h4, h5, h6, li, label, td, th',
+        )
+        const stuck: string[] = []
+        for (const el of Array.from(measurable)) {
+          if (el.closest('[aria-hidden="true"]')) continue
+          if (getComputedStyle(el).animationName !== 'none') continue
+          let node: Element | null = el
+          while (node) {
+            const opacity = Number.parseFloat(getComputedStyle(node).opacity)
+            if (opacity < 0.99) {
+              stuck.push(
+                `<${el.tagName.toLowerCase()} class="${String(el.className)}"> at opacity ${opacity}`,
+              )
+              break
+            }
+            if (node.id === 'contact') break
+            node = node.parentElement
+          }
         }
-        return true
+        return stuck
       })
-    })
+    // A legible failure: on timeout this names WHICH element was still fading, rather
+    // than surfacing as an unexplained axe contrast violation.
+    await expect
+      .poll(unsettled, {
+        message: 'contact section elements should finish their entrance animation',
+        timeout: 15000,
+      })
+      .toEqual([])
     const results = await new AxeBuilder({ page })
       .include('#contact')
       .withTags(['wcag2a', 'wcag2aa'])
