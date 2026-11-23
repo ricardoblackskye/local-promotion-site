@@ -56,7 +56,7 @@ SPELL_LYCHEE_FILTER_REGEX_EXCLUDE: '(package-lock\.json)'
 # the PROJECT-LOCAL eslint runs the config - the same toolchain as `npm run lint`, which is the
 # point: both gates reading one thing.
 PRE_COMMANDS:
-  - command: npm ci --ignore-scripts --no-audit --no-fund
+  - command: npm ci --include=dev --ignore-scripts --no-audit --no-fund
     cwd: workspace
     continue_if_failed: false
 # Installing the deps is not enough on its own: without *_CLI_EXECUTABLE MegaLinter keeps
