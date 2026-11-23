@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -11,7 +12,7 @@ vi.mock('@/hooks/useScrollProgress', () => ({
 import Header from '@/components/layout/Header'
 import { useScrollProgress } from '@/hooks/useScrollProgress'
 
-const mockUseScrollProgress = vi.mocked(useScrollProgress)
+const mockUseScrollProgress = vi.mocked(useScrollProgress) as unknown as Mock
 
 function mountHeader() {
   return render(<Header />)

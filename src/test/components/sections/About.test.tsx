@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -21,7 +22,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
   return React.createElement(QueryClientProvider, { client }, children)
 }
 
-const mockQuery = vi.mocked(wixClient.items.query)
+const mockQuery = vi.mocked(wixClient.items.query) as unknown as Mock
 
 function setupEmptyWix() {
   mockQuery.mockReturnValue({

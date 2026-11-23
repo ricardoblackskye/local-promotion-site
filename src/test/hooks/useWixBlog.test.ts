@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { mockFetchResponse, queryWrapper } from './test-utils'
@@ -13,7 +14,7 @@ vi.mock('react-intersection-observer')
 import { wixClient } from '@/lib/wixClient'
 import { useWixBlog } from '@/hooks/useWixBlog'
 
-const mockedListPosts = vi.mocked(wixClient.posts.listPosts)
+const mockedListPosts = vi.mocked(wixClient.posts.listPosts) as unknown as Mock
 const originalFetch = globalThis.fetch
 
 const wrapper = queryWrapper

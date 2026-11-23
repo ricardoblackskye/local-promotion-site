@@ -4,8 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "overrides": {
-    "brace-expansion": "2.1.4",
-    "js-cookie": "3.0.7"
+    "brace-expansion": "^2.1.7",
+    "js-cookie": "3.0.7",
+    "minimatch": "^11.0.1",
+    "glob": "^14.0.2"
   },
   "scripts": {
     "dev": "vite",
@@ -36,15 +38,15 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.9.1",
     "@playwright/test": "^1.42.1",
-    "@tailwindcss/typography": "^0.5.12",
+    "@tailwindcss/typography": "^0.5.20",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.5.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.73.0",
+    "@typescript-eslint/parser": "^8.73.0",
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^4.1.0",
     "autoprefixer": "^10.4.19",

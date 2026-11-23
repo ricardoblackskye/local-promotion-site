@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -23,7 +24,7 @@ import { useWixPost } from '@/hooks/useWixPost'
 import BlogPostPage from '@/pages/BlogPostPage'
 import type { BlogPost } from '@/types'
 
-const mockUseWixPost = vi.mocked(useWixPost)
+const mockUseWixPost = vi.mocked(useWixPost) as unknown as Mock
 
 const FULL_POST: BlogPost = {
   _id: 'p1',
