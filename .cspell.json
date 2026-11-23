@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "language": "en-GB",
+  "language": "en",
   "ignorePaths": [
     "**/node_modules/**",
     "**/vscode-extension/**",
@@ -9,7 +9,9 @@
     ".vscode",
     "package-lock.json",
     "megalinter-reports/**",
-    "*megalinter_file_names*.txt"
+    "*megalinter_file_names*.txt",
+    "test-results/**",
+    "playwright-report/**"
   ],
   "words": [
     "Anytown",
@@ -129,5 +131,11 @@
     "xyzzy",
     "yoursite",
     "zizmor"
+  ],
+  "import": [
+    "@cspell/dict-en-gb/cspell-ext.json"
+  ],
+  "dictionaries": [
+    "en-gb"
   ]
 }
