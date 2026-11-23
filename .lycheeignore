@@ -1,0 +1,4 @@
+# lychee checks the strings in vercel.json's Content-Security-Policy as if they were links.
+# They are CSP source directives, not browsable pages - the domain roots legitimately 404.
+https://fonts.googleapis.com
+https://fonts.gstatic.com

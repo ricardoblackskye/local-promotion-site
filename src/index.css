@@ -5,12 +5,12 @@
 /* ─── Custom Properties ──────────────────────────────────────── */
 :root {
   --accent: #00d4ff;
-  --accent-dim: rgba(0, 212, 255, 0.15);
-  --accent-glow: rgba(0, 212, 255, 0.35);
-  --surface: rgba(255, 255, 255, 0.04);
-  --surface-hover: rgba(255, 255, 255, 0.08);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-accent: rgba(0, 212, 255, 0.4);
+  --accent-dim: rgb(0 212 255 / 15%);
+  --accent-glow: rgb(0 212 255 / 35%);
+  --surface: rgb(255 255 255 / 4%);
+  --surface-hover: rgb(255 255 255 / 8%);
+  --border-subtle: rgb(255 255 255 / 8%);
+  --border-accent: rgb(0 212 255 / 40%);
 }
 
 /* ─── Base ────────────────────────────────────────────────────── */
@@ -28,7 +28,7 @@ html {
 body {
   background-color: #000;
   color: #fff;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -42,7 +42,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Space Grotesk", sans-serif;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -65,13 +65,16 @@ h6 {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #000;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgb(255 255 255 / 15%);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-dim);
 }
@@ -79,8 +82,8 @@ h6 {
 /* ─── Hero Grid Animation ────────────────────────────────────── */
 .hero-grid {
   background-image:
-    linear-gradient(rgba(0, 212, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.07) 1px, transparent 1px);
+    linear-gradient(rgb(0 212 255 / 7%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 212 255 / 7%) 1px, transparent 1px);
   background-size: 60px 60px;
   animation: grid-pulse 4s ease-in-out infinite;
 }
@@ -90,6 +93,7 @@ h6 {
   100% {
     opacity: 0.3;
   }
+
   50% {
     opacity: 0.8;
   }
@@ -105,6 +109,7 @@ h6 {
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
@@ -129,6 +134,7 @@ h6 {
   border-radius: 2px;
   transition: top 0.2s;
 }
+
 .skip-nav:focus {
   top: 1rem;
 }
@@ -143,6 +149,7 @@ h6 {
   position: relative;
   display: inline-block;
 }
+
 .accent-underline::after {
   content: '';
   position: absolute;
