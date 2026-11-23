@@ -19,7 +19,7 @@ Taken from **main's latest MegaLinter run**, not a stale paste:
 | `REPOSITORY_OSV_SCANNER`                         | **1**         | one Medium advisory, **fixable** - down from 40         |
 | `ACTION_ZIZMOR`                                  | 13 (2 medium) | 11 suppressed; both real ones **auto-fixable**          |
 | `SPELL_LYCHEE`                                   | 3             | a missing file + two 404ing URLs                        |
-| `JAVASCRIPT_ES` / `TSX_ESLINT` / `TYPESCRIPT_ES` | 1 each        | **ESLint v10 migration** - one cause, three descriptors |
+| `JAVASCRIPT_ES` / `JSX_ESLINT` / `TSX_ESLINT` / `TYPESCRIPT_ES` | 1 each (JSX: none) | **ESLint v10 migration** - one cause, **four** descriptors |
 | `SPELL_CSPELL`                                   | 75            | spellings + proper nouns + two plan files               |
 | `CSS_STYLELINT`                                  | 39            | a foreign config + style opinions                       |
 
@@ -71,3 +71,28 @@ throughout; for the linter changes the gate is MegaLinter itself on the branch.
 The rest are a migration, a foreign config, and a dictionary. Reporting all of them as "error" is what made
 this week's triage manual, one log-read at a time. That is the case for agent-eve#743, and this issue is its
 best evidence.
+
+## Notices are failures
+
+MegaLinter emits a notice alongside the failing list:
+
+```
+ESLint v10 flat-config migration required - the following linters fail until you migrate:
+JAVASCRIPT_ES, JSX_ESLINT, TSX_ESLINT, TYPESCRIPT_ES.
+Legacy .eslintrc.cjs was detected; ESLint v10 dropped support for the .eslintrc.* format.
+```
+
+**That notice is not decoration.** It reports four ESLint descriptors as *inert* - a check that
+cannot run is a check that is disabled, which is precisely the outcome this plan exists to avoid.
+The first version of this plan missed it, and missed one of the four descriptors with it.
+
+So two corrections follow:
+
+1. **The migration is not done until the notice stops being emitted.** "No descriptor disabled"
+   is already the acceptance; the notice's absence is how to verify it.
+2. **The failing list is not the measure.** It only names descriptors that had something to run on.
+   `JSX_ESLINT` never appears there (no `.jsx` in scope) and would still be red the moment one is
+   added. Counting three live descriptors would have certified a fourth as fine while it was dead.
+
+The generalisation, since this is the second time today a green measured less than it looked:
+**a check that cannot run is a failure, not an absence of failure.**
