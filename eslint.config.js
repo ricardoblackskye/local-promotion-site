@@ -32,7 +32,7 @@ export default [
     // `standard`'s job in MegaLinter - so this block carries language options and NO rules.
     // It lets the file be parsed and reported without inventing strictness the repo never had.
     files: ['**/*.{js,mjs,cjs}'],
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...globals.node, ...globals.browser } },
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...globals.node, ...globals.browser } }
   },
   {
     // Scoped to exactly what the old gate linted: `eslint . --ext ts,tsx`.
