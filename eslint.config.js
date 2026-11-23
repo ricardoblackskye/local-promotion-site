@@ -26,6 +26,15 @@ const droppedFromRecommended = {
 export default [
   { ignores: ['dist', 'node_modules', 'playwright-report', 'test-results', '__mocks__'] },
   {
+    // MegaLinter hands .js files to eslint explicitly, and --no-ignore means it will NOT
+    // skip one it was given: a flat config whose `files` match nothing for the target makes
+    // eslint fail rather than pass. The old gate never ran eslint rules on .js - .js style is
+    // `standard`'s job in MegaLinter - so this block carries language options and NO rules.
+    // It lets the file be parsed and reported without inventing strictness the repo never had.
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...globals.node, ...globals.browser } },
+  },
+  {
     // Scoped to exactly what the old gate linted: `eslint . --ext ts,tsx`.
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
