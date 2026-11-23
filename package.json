@@ -7,7 +7,8 @@
     "brace-expansion": "^2.1.7",
     "js-cookie": "3.0.7",
     "minimatch": "^11.0.1",
-    "glob": "^14.0.2"
+    "glob": "^14.0.2",
+    "postcss-selector-parser": "^6.1.5"
   },
   "scripts": {
     "dev": "vite",
