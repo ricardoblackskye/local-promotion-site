@@ -49,3 +49,13 @@ SPELL_LYCHEE_ARGUMENTS: --root-dir .
 # contains (npm package maintainer links) are unreachable by automated
 # checkers (403 Forbidden) and are not user-facing content.
 SPELL_LYCHEE_FILTER_REGEX_EXCLUDE: '(package-lock\.json)'
+
+# MegaLinter's bundled eslint runs this repo's flat config WITHOUT the repo's node_modules, so
+# bare ESM imports (@eslint/js, @typescript-eslint/*, the plugins) cannot resolve and every
+# ESLint descriptor fails with ERR_MODULE_NOT_FOUND. Install the project's dependencies first so
+# the PROJECT-LOCAL eslint runs the config - the same toolchain as `npm run lint`, which is the
+# point: both gates reading one thing.
+PRE_COMMANDS:
+  - command: npm ci --ignore-scripts --no-audit --no-fund
+    cwd: workspace
+    continue_if_failed: false
