@@ -90,18 +90,35 @@ test.describe('Accessibility', () => {
 
   test('axe-core: no critical accessibility violations on contact section', async ({ page }) => {
     await page.locator('#contact').scrollIntoViewIfNeeded()
-    // Wait for Framer Motion entrance animations to complete before running axe
-    // (IntersectionObserver fires after scroll; animations take up to 600ms)
+    // Wait for Framer Motion entrance animations to complete before running axe.
+    //
+    // Do NOT wait on the heading's ancestor chain alone. This section uses
+    // staggerChildren, so each element fades in on its own schedule: the heading
+    // settles while its siblings are still mid-fade. axe measures the *rendered*
+    // colour, and a parent below full opacity blends it with the background - which
+    // is why this test reported #757575, #727272 and #6f6f6f on different runs,
+    // all of them "failing" a #898989 token that is 6.00:1 against black and passes
+    // AA outright. #6f6f6f is exactly #898989 at ~80% opacity over black. The token
+    // was never the problem; the measurement was taken mid-transition.
+    //
+    // So wait for the text-bearing elements axe will actually measure to settle,
+    // whatever schedule each of them is on.
     await page.waitForFunction(() => {
-      const heading = document.querySelector('#contact-heading')
-      if (!heading) return false
-      let node: Element | null = heading.parentElement
-      while (node) {
-        if (Number.parseFloat(getComputedStyle(node).opacity) < 0.9) return false
-        if (node.id === 'contact') break
-        node = node.parentElement
-      }
-      return true
+      const section = document.querySelector('#contact')
+      if (!section) return false
+      const measurable = section.querySelectorAll(
+        'p, span, a, h1, h2, h3, h4, h5, h6, li, label, td, th',
+      )
+      if (measurable.length === 0) return false
+      return Array.from(measurable).every((el) => {
+        let node: Element | null = el
+        while (node) {
+          if (Number.parseFloat(getComputedStyle(node).opacity) < 0.99) return false
+          if (node.id === 'contact') break
+          node = node.parentElement
+        }
+        return true
+      })
     })
     const results = await new AxeBuilder({ page })
       .include('#contact')
