@@ -90,19 +90,57 @@ test.describe('Accessibility', () => {
 
   test('axe-core: no critical accessibility violations on contact section', async ({ page }) => {
     await page.locator('#contact').scrollIntoViewIfNeeded()
-    // Wait for Framer Motion entrance animations to complete before running axe
-    // (IntersectionObserver fires after scroll; animations take up to 600ms)
-    await page.waitForFunction(() => {
-      const heading = document.querySelector('#contact-heading')
-      if (!heading) return false
-      let node: Element | null = heading.parentElement
-      while (node) {
-        if (Number.parseFloat(getComputedStyle(node).opacity) < 0.9) return false
-        if (node.id === 'contact') break
-        node = node.parentElement
-      }
-      return true
-    })
+    // Wait for Framer Motion entrance animations to complete before running axe.
+    //
+    // Do NOT wait on the heading's ancestor chain alone. This section uses
+    // staggerChildren, so each element fades in on its own schedule: the heading
+    // settles while its siblings are still mid-fade. axe measures the *rendered*
+    // colour, and a parent below full opacity blends it with the background - which
+    // is why this test reported #757575, #727272 and #6f6f6f on different runs,
+    // all of them "failing" a #898989 token that is 6.00:1 against black and passes
+    // AA outright. #6f6f6f is exactly #898989 at ~80% opacity over black. The token
+    // was never the problem; the measurement was taken mid-transition.
+    //
+    // So wait for the elements axe will actually measure to settle, whatever schedule
+    // each of them is on. Two exclusions, both deliberate:
+    //  - aria-hidden elements: axe ignores them for the contrast rule
+    //  - anything with a running CSS animation. The status dot uses Tailwind's
+    //    animate-pulse, which oscillates opacity 1 <-> 0.5 and would NEVER settle,
+    //    hanging this wait and failing for an entirely new reason.
+    const unsettled = (): Promise<string[]> =>
+      page.evaluate(() => {
+        const section = document.querySelector('#contact')
+        if (!section) return ['#contact not found']
+        const measurable = section.querySelectorAll(
+          'p, span, a, h1, h2, h3, h4, h5, h6, li, label, td, th',
+        )
+        const stuck: string[] = []
+        for (const el of Array.from(measurable)) {
+          if (el.closest('[aria-hidden="true"]')) continue
+          if (getComputedStyle(el).animationName !== 'none') continue
+          let node: Element | null = el
+          while (node) {
+            const opacity = Number.parseFloat(getComputedStyle(node).opacity)
+            if (opacity < 0.99) {
+              stuck.push(
+                `<${el.tagName.toLowerCase()} class="${String(el.className)}"> at opacity ${opacity}`,
+              )
+              break
+            }
+            if (node.id === 'contact') break
+            node = node.parentElement
+          }
+        }
+        return stuck
+      })
+    // A legible failure: on timeout this names WHICH element was still fading, rather
+    // than surfacing as an unexplained axe contrast violation.
+    await expect
+      .poll(unsettled, {
+        message: 'contact section elements should finish their entrance animation',
+        timeout: 15000,
+      })
+      .toEqual([])
     const results = await new AxeBuilder({ page })
       .include('#contact')
       .withTags(['wcag2a', 'wcag2aa'])
