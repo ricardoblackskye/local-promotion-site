@@ -4,8 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "overrides": {
-    "brace-expansion": "2.1.4",
-    "js-cookie": "3.0.7"
+    "brace-expansion": "^2.1.7",
+    "js-cookie": "3.0.7",
+    "minimatch": "^11.0.1",
+    "glob": "^14.0.2"
   },
   "scripts": {
     "dev": "vite",
