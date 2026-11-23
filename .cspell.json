@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "language": "en-GB",
+  "language": "en,en-GB",
   "ignorePaths": [
     "**/node_modules/**",
     "**/vscode-extension/**",
@@ -9,7 +9,9 @@
     ".vscode",
     "package-lock.json",
     "megalinter-reports/**",
-    "*megalinter_file_names*.txt"
+    "*megalinter_file_names*.txt",
+    "test-results/**",
+    "playwright-report/**"
   ],
   "words": [
     "Anytown",
