@@ -67,7 +67,7 @@ throughout; for the linter changes the gate is MegaLinter itself on the branch.
 
 ## Why the shape matters
 
-**Six linters, four causes - and only two are code defects** (the absent favicon, the residual advisory).
+**Six checks, four causes - and only two are code defects** (the absent favicon, the residual advisory).
 The rest are a migration, a foreign config, and a dictionary. Reporting all of them as "error" is what made
 this week's triage manual, one log-read at a time. That is the case for agent-eve#743, and this issue is its
 best evidence.
