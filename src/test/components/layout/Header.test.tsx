@@ -1,3 +1,4 @@
+import { SITE_NAME } from '@/lib/constants'
 import type { Mock } from "vitest";
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
@@ -24,7 +25,8 @@ function mountHeader() {
 describe('Header', () => {
   it('renders the site name', () => {
     mountHeader()
-    expect(screen.getAllByText('Richard Lloyd CMgr MCMI').length).toBeGreaterThan(0)
+    // Asserts the constant (SITE_NAME), not a literal: changing the site's branding must not break this.
+    expect(screen.getAllByText(SITE_NAME).length).toBeGreaterThan(0)
   })
 
   it('renders all nav items', () => {
@@ -76,7 +78,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const logo = screen.getByRole('button', { name: /richard lloyd cmgr mcmi — back to top/i })
+    const logo = screen.getByRole('button', { name: new RegExp(`${SITE_NAME} — back to top`, "i") })
     fireEvent.click(logo)
 
     expect(document.getElementById).toHaveBeenCalledWith('hero')
@@ -120,7 +122,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue(null)
 
     mountHeader()
-    const logoBtn = screen.getByRole('button', { name: /richard lloyd cmgr mcmi — back to top/i })
+    const logoBtn = screen.getByRole('button', { name: new RegExp(`${SITE_NAME} — back to top`, "i") })
     expect(() => fireEvent.click(logoBtn)).not.toThrow()
   })
 

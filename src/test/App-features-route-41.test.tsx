@@ -58,8 +58,8 @@ function renderAt(path: string) {
 }
 
 describe("the app serves the features detail route (#41)", () => {
-  it("renders the detail page for /features/:slug", async () => {
-    renderAt("/features/ai-strategy");
+  it("renders the detail page for /features/:id", async () => {
+    renderAt('/features/s1');
 
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("AI Strategy");
     expect(screen.getByText("A short description of the service.")).toBeTruthy();
