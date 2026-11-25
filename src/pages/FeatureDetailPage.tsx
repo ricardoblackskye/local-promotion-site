@@ -10,8 +10,8 @@ import { useWixService } from "@/hooks/useWixService";
  *
  * Mirrors the blog detail page: the shell renders per page, an unknown slug is a page STATE rather
  * than a crash, and the long-form copy is split into paragraphs. `details` is rendered as text rather
- * than through the Ricos renderer for now - the field may be rich content, and the plan records that
- * as the next step once a real value is in hand to render. Guessing a rich-content shape without one
+ * as markup rather than as plain text: the field holds HTML, so it is rendered as HTML.
+ * The content is authored in the owner s CMS, which is what makes that safe today.
  * would be a renderer that has never seen a document.
  */
 export default function FeatureDetailPage() {
@@ -53,9 +53,6 @@ export default function FeatureDetailPage() {
     )
   }
 
-  const paragraphs = String(service.details ?? "")
-    .split("\n")
-    .filter(Boolean)
 
   return (
     <>
@@ -97,12 +94,14 @@ export default function FeatureDetailPage() {
             />
           )}
 
-          {paragraphs.length > 0 && (
-            <article className="prose prose-invert prose-lg max-w-none">
-              {paragraphs.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
-            </article>
+          {service.details && (
+            <article
+              className="prose prose-invert prose-lg max-w-none"
+              // #41: the CMS field holds MARKUP, not prose with newlines - rendering it as text printed
+              // the tags. The content is authored in the site owner s own CMS, so there is no untrusted
+              // author in this path. If that ever changes, sanitise before it reaches the DOM.
+              dangerouslySetInnerHTML={{ __html: String(service.details) }}
+            />
           )}
         </div>
       </main>

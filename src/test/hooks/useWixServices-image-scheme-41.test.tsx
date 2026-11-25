@@ -31,7 +31,11 @@ vi.mock("@/lib/wixClient", () => ({
 }));
 
 vi.mock("@wix/sdk/media", () => ({
-  getScaledToFillImageUrl: vi.fn((ref: string) => `https://static.wixstatic.com/media/${ref}`),
+  // Mirrors the REAL signature - (identifier, width, height, options). The first version of this mock
+  // took one argument, so it passed while the production call was wrong, and only `tsc` noticed.
+  getScaledToFillImageUrl: vi.fn(
+    (...args: unknown[]) => `https://static.wixstatic.com/media/${String(args[0])}`,
+  ),
 }));
 
 import { wixClient } from "@/lib/wixClient";

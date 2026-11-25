@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { wixClient } from '@/lib/wixClient'
+import { getScaledToFillImageUrl } from '@wix/sdk/media'
 import type { Service } from '@/types'
 
 interface WixService {
@@ -13,6 +14,22 @@ interface WixService {
   image?: string | null
 }
 
+/**
+ * #41: a Wix image field holds an INTERNAL reference (`wix:image://v1/...`), not a URL. Rendered as
+ * an <img src> it is refused by the CSP - "img-src 'self' data: https:" - so the image silently
+ * never loads. Convert it the way the rest of the site does, through the media helper.
+ *
+ * Values that are already loadable pass through untouched, and nothing stays nothing: an entry
+ * with no image must not gain a broken source.
+ */
+function toLoadableImage(image?: string | null): string | undefined {
+  if (!image) return undefined
+  if (image.startsWith('https://') || image.startsWith('data:')) return image
+  // The signature is (identifier, width, height, options) - read from the installed package, and
+  // matching how `ricosRenderer` already calls it (800x450, no transform options).
+  return getScaledToFillImageUrl(image, 800, 450, {})
+}
+
 function mapService(item: WixService): Service {
   return {
     _id: item._id ?? crypto.randomUUID(),
@@ -23,7 +40,7 @@ function mapService(item: WixService): Service {
     // #41: `undefined` rather than an empty string or a placeholder src, so the page can tell "no
     // image provided" from "an image that failed", and render its own fallback for the first.
     details: item.details ?? undefined,
-    image: item.image ?? undefined,
+    image: toLoadableImage(item.image),
   }
 }
 
