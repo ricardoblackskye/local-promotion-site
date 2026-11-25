@@ -69,7 +69,7 @@ export default function Services() {
         >
           <Badge className="mb-4">What I Do</Badge>
           <h2 id="services-heading" className="font-display text-4xl sm:text-5xl font-bold text-white">
-            Services & <span className="text-accent">Expertise</span>
+            SkyeForge <span className="text-accent">Features</span>
           </h2>
           <p className="text-muted mt-4 max-w-xl leading-relaxed">
             Focused engagements that deliver clarity, capability and competitive edge.

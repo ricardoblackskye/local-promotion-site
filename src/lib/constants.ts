@@ -2,7 +2,9 @@ import { NavItem } from '@/types'
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'About', sectionId: 'about' },
-  { label: 'Services', sectionId: 'services' },
+  // #41: renamed with the section. The sectionId deliberately stays 'services' - it is the id
+  // the section element carries, so changing it would leave this nav item scrolling to nothing.
+  { label: 'Features', sectionId: 'services' },
   { label: 'AI Focus', sectionId: 'ai-focus' },
   { label: 'Case Studies', sectionId: 'case-studies' },
   { label: 'Insights', sectionId: 'blog' },

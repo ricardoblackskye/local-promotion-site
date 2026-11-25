@@ -27,7 +27,7 @@ describe('Header', () => {
   it('renders all nav items', () => {
     mountHeader()
     expect(screen.getByRole('button', { name: 'About' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Services' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Features' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Contact' })).toBeInTheDocument()
   })
 
@@ -85,7 +85,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const servicesBtn = screen.getByRole('button', { name: 'Services' })
+    const servicesBtn = screen.getByRole('button', { name: 'Features' })
     fireEvent.keyDown(servicesBtn, { key: 'Enter' })
 
     expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' })
@@ -96,7 +96,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const servicesBtn = screen.getByRole('button', { name: 'Services' })
+    const servicesBtn = screen.getByRole('button', { name: 'Features' })
     fireEvent.keyDown(servicesBtn, { key: ' ' })
 
     expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' })
@@ -107,7 +107,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const servicesBtn = screen.getByRole('button', { name: 'Services' })
+    const servicesBtn = screen.getByRole('button', { name: 'Features' })
     fireEvent.keyDown(servicesBtn, { key: 'Tab' })
 
     expect(scrollIntoViewMock).not.toHaveBeenCalled()

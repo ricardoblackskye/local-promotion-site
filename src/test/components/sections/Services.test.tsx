@@ -83,6 +83,8 @@ describe('Services', () => {
     } as unknown as ReturnType<typeof mockQuery>)
     vi.mocked(useInView).mockReturnValueOnce({ ref: vi.fn(), inView: false, entry: undefined } as unknown as ReturnType<typeof useInView>)
     render(<Services />, { wrapper })
-    expect(screen.getByRole('region', { name: /services/i })).toBeInTheDocument()
+    // #41: the section is labelled by its heading, so the rename changes the accessible name too -
+    // which is the correct behaviour to assert: the region is still NAMED, now as Features.
+    expect(screen.getByRole('region', { name: /features/i })).toBeInTheDocument()
   })
 })
