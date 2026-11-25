@@ -10,6 +10,7 @@ import {
   Globe,
   Target,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { useWixServices } from '@/hooks/useWixServices'
@@ -84,8 +85,10 @@ export default function Services() {
         >
           {services.map((service) => {
             const IconComponent = ICON_MAP[service.icon] ?? Brain
-            return (
-              <motion.li key={service._id} variants={fadeUp}>
+            // #41: the card already promises navigation - it renders "Learn more ->" on every entry -
+            // and the promise is only true where a real record backs it. An entry with no slug is a
+            // fallback, so it stays unlinked rather than becoming a link to nowhere.
+            const card = (
                 <Card className="h-full flex flex-col gap-4">
                   <div
                     className="w-10 h-10 rounded-sm bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0"
@@ -107,6 +110,19 @@ export default function Services() {
                     </span>
                   </div>
                 </Card>
+            )
+            return (
+              <motion.li key={service._id} variants={fadeUp}>
+                {service.slug ? (
+                  <Link
+                    to={`/features/${service.slug}`}
+                    className="block h-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                  >
+                    {card}
+                  </Link>
+                ) : (
+                  card
+                )}
               </motion.li>
             )
           })}
