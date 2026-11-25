@@ -39,7 +39,7 @@ test.describe('Mobile Responsiveness', () => {
     test('mobile nav contains all navigation items', async ({ page }) => {
       await page.locator('button[aria-label="Open menu"]').click()
       const mobileMenu = page.locator('#mobile-menu')
-      const navLabels = ['About', 'Services', 'AI Focus', 'Case Studies', 'Insights', 'Contact']
+      const navLabels = ['About', 'Features', 'AI Focus', 'Case Studies', 'Insights', 'Contact']
       for (const label of navLabels) {
         await expect(mobileMenu.locator(`button:has-text("${label}")`)).toBeVisible()
       }

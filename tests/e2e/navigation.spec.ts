@@ -16,7 +16,7 @@ test.describe('Navigation', () => {
     await page.setViewportSize({ width: 1280, height: 800 })
     const nav = page.locator('nav[aria-label="Main navigation"]')
     await expect(nav).toBeVisible()
-    const navLabels = ['About', 'Services', 'AI Focus', 'Case Studies', 'Insights', 'Contact']
+    const navLabels = ['About', 'Features', 'AI Focus', 'Case Studies', 'Insights', 'Contact']
     for (const label of navLabels) {
       await expect(nav.locator(`button:has-text("${label}")`)).toBeVisible()
     }
@@ -29,9 +29,9 @@ test.describe('Navigation', () => {
     await expect(page.locator('#about')).toBeInViewport({ ratio: 0.3 })
   })
 
-  test('clicking Services nav scrolls to services section', async ({ page }) => {
+  test('clicking Features nav scrolls to the features section', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
-    await page.locator('nav[aria-label="Main navigation"] button:has-text("Services")').click()
+    await page.locator('nav[aria-label="Main navigation"] button:has-text("Features")').click()
     await expect(page.locator('#services')).toBeInViewport({ ratio: 0.3 })
   })
 
