@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import { NAV_ITEMS, SITE_NAME } from '@/lib/constants'
@@ -11,9 +12,51 @@ function scrollToSection(sectionId: string) {
   }
 }
 
+/**
+ * #41: one nav control, in its two honest forms.
+ *
+ * On the home page a section id exists, so the control SCROLLS - exactly as it always has, keyboard
+ * activation included. Off the home page none of those ids exists, so scrolling silently does
+ * nothing: the control would look live, take focus, and be inert. There it becomes a link.
+ */
+function NavControl({
+  item,
+  onHome,
+  className,
+  onActivate,
+  onKeyActivate,
+}: {
+  item: { label: string; sectionId: string };
+  onHome: boolean;
+  className: string;
+  onActivate: (sectionId: string) => void;
+  onKeyActivate: (event: React.KeyboardEvent, sectionId: string) => void;
+}) {
+  if (!onHome) {
+    return (
+      <Link to={`/#${item.sectionId}`} className={className}>
+        {item.label}
+      </Link>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => onActivate(item.sectionId)}
+      onKeyDown={(event) => onKeyActivate(event, item.sectionId)}
+      className={className}
+    >
+      {item.label}
+    </button>
+  )
+}
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { isPastHero } = useScrollProgress()
+  // #41: whether the section ids this header scrolls to exist on the current route.
+  const { pathname } = useLocation()
+  const onHome = pathname === "/"
 
   const toggleMobile = useCallback(() => setMobileOpen((v) => !v), [])
   const closeMobile = useCallback(() => setMobileOpen(false), [])
@@ -48,27 +91,36 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <button
-            type="button"
-            onClick={() => scrollToSection('hero')}
-            className="font-display font-bold text-lg tracking-tight text-white hover:text-accent transition-colors"
-            aria-label={`${SITE_NAME} — back to top`}
-          >
-            {SITE_NAME}
-          </button>
+          {onHome ? (
+            <button
+              type="button"
+              onClick={() => scrollToSection('hero')}
+              className="font-display font-bold text-lg tracking-tight text-white hover:text-accent transition-colors"
+              aria-label={`${SITE_NAME} — back to top`}
+            >
+              {SITE_NAME}
+            </button>
+          ) : (
+            <Link
+              to="/"
+              className="font-display font-bold text-lg tracking-tight text-white hover:text-accent transition-colors"
+              aria-label={`${SITE_NAME} — home`}
+            >
+              {SITE_NAME}
+            </Link>
+          )}
 
           {/* Desktop Nav */}
           <nav role="navigation" aria-label="Main navigation" className="hidden md:flex items-center gap-8">
             {NAV_ITEMS.map((item) => (
-              <button
+              <NavControl
                 key={item.sectionId}
-                type="button"
-                onClick={() => handleNavClick(item.sectionId)}
-                onKeyDown={(e) => handleKeyDown(e, item.sectionId)}
+                item={item}
+                onHome={onHome}
                 className="text-sm text-white/70 hover:text-accent transition-colors font-medium tracking-wide"
-              >
-                {item.label}
-              </button>
+                onActivate={handleNavClick}
+                onKeyActivate={handleKeyDown}
+              />
             ))}
             <button
               type="button"
@@ -108,14 +160,14 @@ export default function Header() {
           >
             <nav className="flex flex-col py-4 px-4 sm:px-6 gap-1">
               {NAV_ITEMS.map((item) => (
-                <button
+                <NavControl
                   key={item.sectionId}
-                  type="button"
-                  onClick={() => handleNavClick(item.sectionId)}
+                  item={item}
+                  onHome={onHome}
                   className="text-left text-white/80 hover:text-accent py-3 text-base font-medium transition-colors border-b border-white/[0.05] last:border-0"
-                >
-                  {item.label}
-                </button>
+                  onActivate={handleNavClick}
+                  onKeyActivate={handleKeyDown}
+                />
               ))}
               <button
                 type="button"

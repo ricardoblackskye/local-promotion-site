@@ -1,6 +1,7 @@
 import type { Mock } from "vitest";
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 
 vi.mock('framer-motion')
@@ -15,7 +16,9 @@ import { useScrollProgress } from '@/hooks/useScrollProgress'
 const mockUseScrollProgress = vi.mocked(useScrollProgress) as unknown as Mock
 
 function mountHeader() {
-  return render(<Header />)
+  // #41: the header reads the location now, so it needs a router. Home is deliberate - these cases
+  // are about the home-page behaviour, which the change must leave alone.
+  return render(<MemoryRouter initialEntries={['/']}><Header /></MemoryRouter>)
 }
 
 describe('Header', () => {
