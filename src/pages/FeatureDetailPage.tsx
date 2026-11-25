@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import Breadcrumb from "@/components/layout/Breadcrumb";
 import { useWixService } from "@/hooks/useWixService";
 
 /**
@@ -61,6 +62,18 @@ export default function FeatureDetailPage() {
       <Header />
       <main id="main-content">
         <div className="max-w-3xl mx-auto px-6 py-16">
+
+          {/* #41: the way back. The header above cannot provide one - it navigates by scrolling
+              to home-page section ids, so off the home page its controls do nothing. */}
+          <Breadcrumb
+            items={[
+              { label: "Home", to: "/" },
+              // The collection is a section of the home page carrying id="services", so the
+              // middle step goes there rather than to a /features route that does not exist.
+              { label: "SkyeForge Features", to: "/#services" },
+              { label: service.title },
+            ]}
+          />
           <button
             className="inline-flex items-center gap-2 text-muted hover:text-white transition-colors mb-8"
             onClick={() => window.history.back()}
