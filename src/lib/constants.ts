@@ -11,7 +11,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Contact', sectionId: 'contact' },
 ]
 
-export const SITE_NAME = 'Richard Lloyd CMgr MCMI'
+export const SITE_NAME = 'Richard Lloyd CMgr FCMI'
 
 export const SITE_TAGLINE = 'AI Strategy & Senior Leadership'
 
@@ -32,6 +32,7 @@ export const STATS = [
 export const AI_CAPABILITIES = [
   'GenAI Strategy',
   'LLM Implementation',
+  'Dark Factory',
   'Data Architecture',
   'AI Ethics & Governance',
   'ML Ops',
