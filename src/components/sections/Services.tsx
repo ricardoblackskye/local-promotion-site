@@ -85,11 +85,13 @@ export default function Services() {
         >
           {services.map((service) => {
             const IconComponent = ICON_MAP[service.icon] ?? Brain
-            // #41: the card already promises navigation - it renders "Learn more ->" on every entry -
-            // and the promise is only true where a real record backs it. An entry with no slug is a
-            // fallback, so it stays unlinked rather than becoming a link to nowhere.
+            // #41: the card already promises navigation - it renders "Learn more ->" on every entry.
+            // The key is the record's `_id`: Wix always supplies it, the mapper already depends on it,
+            // and unlike a `slug` field it needs no data entry. An earlier version keyed on `slug` and
+            // every test passed while the browser showed inert cards, because the tests supplied a slug
+            // the collection never had.
             const card = (
-                <Card className="h-full flex flex-col gap-4">
+                  <Card className="h-full flex flex-col gap-4">
                   <div
                     className="w-10 h-10 rounded-sm bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0"
                     aria-hidden="true"
@@ -113,16 +115,12 @@ export default function Services() {
             )
             return (
               <motion.li key={service._id} variants={fadeUp}>
-                {service.slug ? (
-                  <Link
-                    to={`/features/${service.slug}`}
+                <Link
+                  to={`/features/${service._id}`}
                     className="block h-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
                   >
                     {card}
-                  </Link>
-                ) : (
-                  card
-                )}
+                </Link>
               </motion.li>
             )
           })}

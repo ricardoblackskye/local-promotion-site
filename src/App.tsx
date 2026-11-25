@@ -54,7 +54,7 @@ export default function App() {
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         {/* #41: one SkyeForge Features entry. The collection page comes with the rename, so the
             detail route is keyed on the slug the collection already carries. */}
-        <Route path="/features/:slug" element={<FeatureDetailPage />} />
+        <Route path="/features/:id" element={<FeatureDetailPage />} />
       </Routes>
     </QueryClientProvider>
   )

@@ -15,8 +15,8 @@ import { useWixService } from "@/hooks/useWixService";
  * would be a renderer that has never seen a document.
  */
 export default function FeatureDetailPage() {
-  const { slug = "" } = useParams<{ slug: string }>()
-  const { data: service, isLoading, isError } = useWixService(slug)
+  const { id = "" } = useParams<{ id: string }>()
+  const { data: service, isLoading, isError } = useWixService(id)
 
   if (isLoading) {
     return (

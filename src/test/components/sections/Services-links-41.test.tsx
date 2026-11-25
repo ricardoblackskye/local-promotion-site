@@ -1,15 +1,13 @@
 /**
  * #41 task 4 - a card must actually go somewhere.
  *
- * The section already renders "Learn more ->" on every card, which promises navigation and delivers
- * none: the card is inert markup. So the change is not "add a link", it is "make an existing promise
- * true" - and the case that matters most is the one where it must NOT become a link:
+ * The section already renders "Learn more ->" on every card, promising navigation it does not deliver.
+ * The change makes that promise true.
  *
- *   the section falls back to six hard-coded entries when the collection is empty, and NONE of them
- *   carries a slug. Linking unconditionally would produce six links to nowhere exactly when the data
- *   source is unavailable.
- *
- * So: a card with a slug is a link to its detail route; a card without one stays as it is today.
+ * RE-POINTED after the follow-up. This file first asserted that a card WITHOUT a slug stayed unlinked,
+ * and the live browser proved that premise wrong: the collection supplies no slug at all, so every card
+ * was inert. The key is now the record id, which every record has - so the guard is no longer "is there
+ * a slug" but "does the link point at the record the data actually carries".
  */
 import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -28,11 +26,8 @@ import type { Service } from "@/types";
 
 const mockUseWixServices = vi.mocked(useWixServices) as unknown as Mock;
 
-function withServices(items: Service[]) {
+function renderSection(items: Service[]) {
   mockUseWixServices.mockReturnValue({ data: items, isLoading: false, isError: false });
-}
-
-function renderSection() {
   return render(
     <MemoryRouter initialEntries={["/"]}>
       <Services />
@@ -44,45 +39,30 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("a card with a slug links to its detail page (#41)", () => {
-  it("links the card to /features/<slug>", () => {
-    withServices([
-      {
-        _id: "s1",
-        title: "AI Strategy",
-        description: "Desc",
-        icon: "brain",
-        slug: "ai-strategy",
-      },
+describe("a card with a record links to its detail page (#41)", () => {
+  it("links the card, and the link carries the copy the card already showed", () => {
+    renderSection([
+      { _id: "s1", title: "AI Strategy", description: "Desc", icon: "brain", slug: "ai-strategy" },
     ]);
 
-    renderSection();
-
     const link = screen.getByRole("link", { name: /AI Strategy/ });
-    expect(link.getAttribute("href")).toBe("/features/ai-strategy");
-    // The affordance the card already showed, now doing what it says.
+    expect(link.getAttribute("href")).toBe("/features/s1");
     expect(link.textContent).toMatch(/Learn more/);
   });
 
-  // The control: a fallback entry has no slug, so it must not become a dead link.
-  it("leaves a card without a slug unlinked", () => {
-    withServices([{ _id: "s2", title: "Bare Entry", description: "Desc", icon: "brain" }]);
+  // The re-pointed guard: the link must address the RECORD, whichever fields it happens to carry.
+  it("addresses the record whether or not it carries a slug", () => {
+    renderSection([{ _id: "s2", title: "Bare Entry", description: "Desc", icon: "brain" }]);
 
-    renderSection();
-
-    expect(screen.getByText("Bare Entry")).toBeTruthy();
-    expect(screen.queryByRole("link", { name: /Bare Entry/ })).toBeNull();
+    expect(screen.getByRole("link", { name: /Bare Entry/ }).getAttribute("href")).toBe("/features/s2");
   });
 
-  it("links every card that has a slug, and only those", () => {
-    withServices([
+  it("links every card, since every record has an id", () => {
+    renderSection([
       { _id: "a", title: "Has Slug", description: "D", icon: "brain", slug: "has-slug" },
       { _id: "b", title: "No Slug", description: "D", icon: "brain" },
     ]);
 
-    renderSection();
-
-    expect(screen.getAllByRole("link")).toHaveLength(1);
-    expect(screen.getByRole("link").getAttribute("href")).toBe("/features/has-slug");
+    expect(screen.getAllByRole("link")).toHaveLength(2);
   });
 });
