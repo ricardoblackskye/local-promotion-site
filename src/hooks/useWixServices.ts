@@ -8,6 +8,9 @@ interface WixService {
   description?: string | null
   icon?: string | null
   slug?: string | null
+  /** #41: the detail page s two fields. Absent or null must both mean "not provided". */
+  details?: string | null
+  image?: string | null
 }
 
 function mapService(item: WixService): Service {
@@ -17,6 +20,10 @@ function mapService(item: WixService): Service {
     description: item.description ?? '',
     icon: item.icon ?? 'brain',
     slug: item.slug ?? undefined,
+    // #41: `undefined` rather than an empty string or a placeholder src, so the page can tell "no
+    // image provided" from "an image that failed", and render its own fallback for the first.
+    details: item.details ?? undefined,
+    image: item.image ?? undefined,
   }
 }
 
