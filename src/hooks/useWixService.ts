@@ -1,14 +1,22 @@
 import type { Service } from "@/types";
+import { useWixServices } from "@/hooks/useWixServices";
 
 /**
- * #41 task 2 - one SkyeForge Features entry by slug, for the detail page.
+ * #41 - one SkyeForge Features entry by slug, for the detail page.
  *
- * Stub for the RED: it returns nothing, so the page tests fail on behaviour rather than at import.
+ * Deliberately built on the collection hook rather than a second query: the cards already load the
+ * collection, so a detail view shares that cache instead of issuing a parallel request, and the
+ * collection is small enough that finding the slug in the result is honest rather than clever.
+ *
+ * `limit` is raised above the cards default so a slug that is not on the home page is still found.
  */
 export function useWixService(slug: string) {
-  // The slug is accepted and unused on purpose: this stub exists so the RED fails on the page s
-  // behaviour, and the GREEN replaces the body with the query. Touching it here keeps the repo s
-  // lint honest rather than adding a disable comment for a placeholder.
-  void slug
-  return { data: undefined as Service | undefined, isLoading: false, isError: true };
+  const query = useWixServices(100)
+  const service = query.data?.find((entry) => entry.slug === slug)
+
+  return {
+    data: service as Service | undefined,
+    isLoading: query.isLoading,
+    isError: query.isError || (query.isSuccess && service === undefined),
+  }
 }
