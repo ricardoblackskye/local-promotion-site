@@ -90,7 +90,7 @@ export default function FeatureDetailPage() {
             <img
               src={service.image}
               alt={service.title}
-              className="w-full h-[40vh] object-cover rounded-sm mb-8"
+              className="w-full h-auto rounded-sm mb-8"
             />
           )}
 

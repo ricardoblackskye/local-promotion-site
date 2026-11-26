@@ -14,8 +14,8 @@ async function handler(req: Request, res?: VercelResponse): Promise<Response | v
     ) => Promise<{ post?: WixPost }>)(slug!, { fieldsets: ['CONTENT_TEXT', 'RICH_CONTENT'] })
     if (!response.post) return json({ error: 'Post not found' }, 404)
     return json(mapWixPost(response.post, {
-      width: 1200,
-      height: 630,
+      width: 1600,
+      height: 840,
       fallbackSlug: slug!,
       includeContent: true,
     }), 200)

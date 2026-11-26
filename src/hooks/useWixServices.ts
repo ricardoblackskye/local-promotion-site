@@ -27,7 +27,13 @@ function toLoadableImage(image?: string | null): string | undefined {
   if (image.startsWith('https://') || image.startsWith('data:')) return image
   // The signature is (identifier, width, height, options) - read from the installed package, and
   // matching how `ricosRenderer` already calls it (800x450, no transform options).
-  return getScaledToFillImageUrl(image, 800, 450, {})
+  // The reference carries the original dimensions in its fragment (…#originWidth=600&originHeight=338),
+  // so the request can match the image s own ratio at 1600 wide. Asking for a fixed 800x450 instead
+  // both under-served the full-width element (soft) and cropped the image to 16:9 (edges lost).
+  const dims = /originWidth=(\d+)&originHeight=(\d+)/.exec(image)
+  const width = 1600
+  const height = dims ? Math.round(1600 * (Number(dims[2]) / Number(dims[1]))) : 900
+  return getScaledToFillImageUrl(image, width, height, {})
 }
 
 function mapService(item: WixService): Service {
