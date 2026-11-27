@@ -10,6 +10,7 @@ import {
   Globe,
   Target,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { useWixServices } from '@/hooks/useWixServices'
@@ -68,7 +69,7 @@ export default function Services() {
         >
           <Badge className="mb-4">What I Do</Badge>
           <h2 id="services-heading" className="font-display text-4xl sm:text-5xl font-bold text-white">
-            Services & <span className="text-accent">Expertise</span>
+            SkyeForge <span className="text-accent">Features</span>
           </h2>
           <p className="text-muted mt-4 max-w-xl leading-relaxed">
             Focused engagements that deliver clarity, capability and competitive edge.
@@ -84,9 +85,13 @@ export default function Services() {
         >
           {services.map((service) => {
             const IconComponent = ICON_MAP[service.icon] ?? Brain
-            return (
-              <motion.li key={service._id} variants={fadeUp}>
-                <Card className="h-full flex flex-col gap-4">
+            // #41: the card already promises navigation - it renders "Learn more ->" on every entry.
+            // The key is the record's `_id`: Wix always supplies it, the mapper already depends on it,
+            // and unlike a `slug` field it needs no data entry. An earlier version keyed on `slug` and
+            // every test passed while the browser showed inert cards, because the tests supplied a slug
+            // the collection never had.
+            const card = (
+                  <Card className="h-full flex flex-col gap-4">
                   <div
                     className="w-10 h-10 rounded-sm bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0"
                     aria-hidden="true"
@@ -107,6 +112,15 @@ export default function Services() {
                     </span>
                   </div>
                 </Card>
+            )
+            return (
+              <motion.li key={service._id} variants={fadeUp}>
+                <Link
+                  to={`/features/${service._id}`}
+                    className="block h-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                  >
+                    {card}
+                </Link>
               </motion.li>
             )
           })}

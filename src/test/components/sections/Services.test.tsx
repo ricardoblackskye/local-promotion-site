@@ -1,6 +1,7 @@
 import type { Mock } from "vitest";
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import React from 'react'
@@ -31,7 +32,7 @@ describe('Services', () => {
       find: vi.fn().mockResolvedValue({ items: [] }),
     } as unknown as ReturnType<typeof mockQuery>)
 
-    const { findByText } = render(<Services />, { wrapper })
+    const { findByText } = render(<MemoryRouter initialEntries={["/"]}><Services /></MemoryRouter>, { wrapper })
     expect(await findByText('AI Strategy & Roadmap')).toBeInTheDocument()
   })
 
@@ -44,7 +45,7 @@ describe('Services', () => {
       find: vi.fn().mockResolvedValue({ items: cmsServices }),
     } as unknown as ReturnType<typeof mockQuery>)
 
-    const { findByText } = render(<Services />, { wrapper })
+    const { findByText } = render(<MemoryRouter initialEntries={["/"]}><Services /></MemoryRouter>, { wrapper })
     expect(await findByText('CMS Service')).toBeInTheDocument()
   })
 
@@ -57,7 +58,7 @@ describe('Services', () => {
       find: vi.fn().mockResolvedValue({ items: cmsServices }),
     } as unknown as ReturnType<typeof mockQuery>)
 
-    const { findByText } = render(<Services />, { wrapper })
+    const { findByText } = render(<MemoryRouter initialEntries={["/"]}><Services /></MemoryRouter>, { wrapper })
     await findByText('Brain Service')
     // Service description also shows
     expect(screen.getByText('Desc')).toBeInTheDocument()
@@ -72,7 +73,7 @@ describe('Services', () => {
       find: vi.fn().mockResolvedValue({ items: cmsServices }),
     } as unknown as ReturnType<typeof mockQuery>)
 
-    const { findByText } = render(<Services />, { wrapper })
+    const { findByText } = render(<MemoryRouter initialEntries={["/"]}><Services /></MemoryRouter>, { wrapper })
     expect(await findByText('Unknown Icon')).toBeInTheDocument()
   })
 
@@ -82,7 +83,9 @@ describe('Services', () => {
       find: vi.fn().mockResolvedValue({ items: [] }),
     } as unknown as ReturnType<typeof mockQuery>)
     vi.mocked(useInView).mockReturnValueOnce({ ref: vi.fn(), inView: false, entry: undefined } as unknown as ReturnType<typeof useInView>)
-    render(<Services />, { wrapper })
-    expect(screen.getByRole('region', { name: /services/i })).toBeInTheDocument()
+    render(<MemoryRouter initialEntries={["/"]}><Services /></MemoryRouter>, { wrapper })
+    // #41: the section is labelled by its heading, so the rename changes the accessible name too -
+    // which is the correct behaviour to assert: the region is still NAMED, now as Features.
+    expect(screen.getByRole('region', { name: /features/i })).toBeInTheDocument()
   })
 })

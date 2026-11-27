@@ -53,7 +53,11 @@ function imageUrl(src: ImageData['image']): string | undefined {
   if (!raw) return undefined
   if (raw.startsWith('wix:image://') || raw.startsWith('wix:')) {
     try {
-      return getScaledToFillImageUrl(raw, src?.width ?? 800, src?.height ?? 450, {})
+      // 1600 wide at the image s own ratio: a fixed 800 was smaller than the full-width element,
+      // so the browser upscaled it - soft.
+      const w = src?.width ?? 800
+      const h = src?.height ?? 450
+      return getScaledToFillImageUrl(raw, 1600, Math.round(h * (1600 / w)), {})
     } catch {
       return undefined
     }

@@ -94,7 +94,7 @@ export default function BlogPostPage() {
             <img
               src={post.coverImage}
               alt={post.title}
-              className="w-full h-[40vh] object-cover rounded-sm mb-8"
+              className="w-full h-auto rounded-sm mb-8"
             />
           )}
 

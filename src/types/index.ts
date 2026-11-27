@@ -4,6 +4,14 @@ export interface Service {
   description: string
   icon: string
   slug?: string
+  /**
+   * #41: the two fields the detail page needs. `details` is the collection s long-form copy (it may be
+   * rich content, which is why the page renders it through the existing Ricos renderer) and `image` is
+   * the hero for that entry. Both optional: an entry without them must still render, which is the
+   * control in the hook s test.
+   */
+  details?: string
+  image?: string
 }
 
 export interface CaseStudy {

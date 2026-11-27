@@ -1,6 +1,8 @@
+import { SITE_NAME } from '@/lib/constants'
 import type { Mock } from "vitest";
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 
 vi.mock('framer-motion')
@@ -15,19 +17,22 @@ import { useScrollProgress } from '@/hooks/useScrollProgress'
 const mockUseScrollProgress = vi.mocked(useScrollProgress) as unknown as Mock
 
 function mountHeader() {
-  return render(<Header />)
+  // #41: the header reads the location now, so it needs a router. Home is deliberate - these cases
+  // are about the home-page behaviour, which the change must leave alone.
+  return render(<MemoryRouter initialEntries={['/']}><Header /></MemoryRouter>)
 }
 
 describe('Header', () => {
   it('renders the site name', () => {
     mountHeader()
-    expect(screen.getAllByText('Richard Lloyd CMgr MCMI').length).toBeGreaterThan(0)
+    // Asserts the constant (SITE_NAME), not a literal: changing the site's branding must not break this.
+    expect(screen.getAllByText(SITE_NAME).length).toBeGreaterThan(0)
   })
 
   it('renders all nav items', () => {
     mountHeader()
     expect(screen.getByRole('button', { name: 'About' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Services' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Features' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Contact' })).toBeInTheDocument()
   })
 
@@ -73,7 +78,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const logo = screen.getByRole('button', { name: /richard lloyd cmgr mcmi — back to top/i })
+    const logo = screen.getByRole('button', { name: new RegExp(`${SITE_NAME} — back to top`, "i") })
     fireEvent.click(logo)
 
     expect(document.getElementById).toHaveBeenCalledWith('hero')
@@ -85,7 +90,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const servicesBtn = screen.getByRole('button', { name: 'Services' })
+    const servicesBtn = screen.getByRole('button', { name: 'Features' })
     fireEvent.keyDown(servicesBtn, { key: 'Enter' })
 
     expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' })
@@ -96,7 +101,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const servicesBtn = screen.getByRole('button', { name: 'Services' })
+    const servicesBtn = screen.getByRole('button', { name: 'Features' })
     fireEvent.keyDown(servicesBtn, { key: ' ' })
 
     expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth' })
@@ -107,7 +112,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue({ scrollIntoView: scrollIntoViewMock })
 
     mountHeader()
-    const servicesBtn = screen.getByRole('button', { name: 'Services' })
+    const servicesBtn = screen.getByRole('button', { name: 'Features' })
     fireEvent.keyDown(servicesBtn, { key: 'Tab' })
 
     expect(scrollIntoViewMock).not.toHaveBeenCalled()
@@ -117,7 +122,7 @@ describe('Header', () => {
     document.getElementById = vi.fn().mockReturnValue(null)
 
     mountHeader()
-    const logoBtn = screen.getByRole('button', { name: /richard lloyd cmgr mcmi — back to top/i })
+    const logoBtn = screen.getByRole('button', { name: new RegExp(`${SITE_NAME} — back to top`, "i") })
     expect(() => fireEvent.click(logoBtn)).not.toThrow()
   })
 
